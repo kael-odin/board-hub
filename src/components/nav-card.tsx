@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'motion/react'
+import { withBase } from '@/lib/asset-path'
 import { useCenterStore } from '@/hooks/use-center'
 import { CARD_SPACING } from '@/consts'
 import ProjectsFilledSVG from '@/svgs/projects-filled.svg'
@@ -100,7 +101,7 @@ export default function NavCard() {
 					{form === 'full' && siteContent.enableChristmas && (
 						<>
 							<img
-								src='/images/christmas/snow-4.webp'
+								src={withBase('/images/christmas/snow-4.webp')}
 								alt='Christmas decoration'
 								className='pointer-events-none absolute'
 								style={{ width: 160, left: -18, top: -20, opacity: 0.9 }}
@@ -109,7 +110,7 @@ export default function NavCard() {
 					)}
 
 					<Link className='flex items-center gap-3' href='/'>
-						<Image src='/images/avatar.png' alt='avatar' width={40} height={40} style={{ boxShadow: ' 0 12px 20px -5px #E2D9CE' }} className='rounded-full' />
+						<Image src={withBase('/images/avatar.png')} alt='avatar' width={40} height={40} style={{ boxShadow: ' 0 12px 20px -5px #E2D9CE' }} className='rounded-full' />
 						{form === 'full' && <span className='font-averia mt-1 text-2xl leading-none font-medium'>{siteContent.meta.title}</span>}
 						{form === 'full' && <span className='text-brand mt-2 text-xs font-medium'>看板 · Boards</span>}
 					</Link>

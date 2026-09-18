@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'motion/react'
+import { withBase } from '@/lib/asset-path'
 import { useEffect } from 'react'
 import { INIT_DELAY } from '@/consts'
 import { useSize } from '@/hooks/use-size'
@@ -44,7 +45,7 @@ export default function Home() {
 					className='mb-12 flex flex-col items-center gap-4 text-center'>
 					<Link href='/'>
 						<Image
-							src='/images/avatar.png'
+							src={withBase('/images/avatar.png')}
 							alt='avatar'
 							width={72}
 							height={72}

@@ -1,6 +1,7 @@
 'use client'
 
 import useSWR from 'swr'
+import { withBase } from '@/lib/asset-path'
 import { deriveCategories } from '@/lib/board-index'
 import type { BoardIndexItem } from '@/app/boards/types'
 
@@ -17,7 +18,7 @@ const fetcher = async (url: string): Promise<BoardIndexItem[]> => {
  * 少一个需要同步的文件。
  */
 export function useCategories() {
-	const { data, error, isLoading } = useSWR<BoardIndexItem[]>('/boards/index.json', fetcher, {
+	const { data, error, isLoading } = useSWR<BoardIndexItem[]>(withBase('/boards/index.json'), fetcher, {
 		revalidateOnFocus: false,
 		revalidateOnReconnect: true
 	})

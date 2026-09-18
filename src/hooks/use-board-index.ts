@@ -1,5 +1,6 @@
 import useSWR from 'swr'
 import { useAuthStore } from '@/hooks/use-auth'
+import { withBase } from '@/lib/asset-path'
 import type { BoardIndexItem } from '@/app/boards/types'
 
 export type { BoardIndexItem } from '@/app/boards/types'
@@ -19,7 +20,7 @@ const fetcher = async (url: string) => {
 /** 读取看板列表。未登录时自动过滤掉标记为 hidden 的看板。 */
 export function useBoardIndex() {
 	const { isAuth } = useAuthStore()
-	const { data, error, isLoading } = useSWR<BoardIndexItem[]>('/boards/index.json', fetcher, {
+	const { data, error, isLoading } = useSWR<BoardIndexItem[]>(withBase('/boards/index.json'), fetcher, {
 		revalidateOnFocus: false,
 		revalidateOnReconnect: true
 	})

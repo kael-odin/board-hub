@@ -103,7 +103,7 @@ export default function BoardView({ slug }: { slug: string }) {
 						animate={{ opacity: 1, scale: 1 }}
 						whileHover={{ scale: 1.05 }}
 						whileTap={{ scale: 0.95 }}
-						onClick={() => router.push(`/write/${slug}`)}
+						onClick={() => router.push(`/write?slug=${slug}`)}
 						className='rounded-xl border bg-white/60 px-4 py-1.5 text-xs backdrop-blur-sm transition-colors hover:bg-white/80 dark:bg-white/10 dark:hover:bg-white/15'>
 						编辑
 					</motion.button>

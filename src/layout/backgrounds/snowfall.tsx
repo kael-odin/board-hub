@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
+import { withBase } from '@/lib/asset-path'
 
 interface Snowflake {
 	id: number
@@ -13,7 +14,7 @@ interface Snowflake {
 	rotate: number
 }
 
-const SNOWFLAKE_IMAGES = ['/images/christmas/snowflake/1.webp', '/images/christmas/snowflake/2.webp', '/images/christmas/snowflake/3.webp']
+const SNOWFLAKE_IMAGES = ['/images/christmas/snowflake/1.webp', '/images/christmas/snowflake/2.webp', '/images/christmas/snowflake/3.webp'].map(withBase)
 const DOT_RATIO = 0.8
 
 export default function SnowfallBackground({ zIndex, count = 125 }: { zIndex: number; count?: number }) {

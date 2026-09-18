@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { motion } from 'motion/react'
 import dayjs from 'dayjs'
 import { BOARD_TYPE_LABELS, normalizeBoardType, type BoardType, type BoardIndexItem } from '../types'
+import { withBase } from '@/lib/asset-path'
 
 /** 缩略图渲染时假定的看板逻辑尺寸，实际显示靠 transform 缩放 */
 const THUMB_W = 1280
@@ -33,7 +34,7 @@ function BoardThumb({ item }: { item: BoardIndexItem }) {
 	const [hovered, setHovered] = useState(false)
 
 	// 图片类型优先用封面，其次用第一张图
-	const staticImage = item.cover || (type === 'image' ? item.images?.[0] : undefined)
+	const staticImage = withBase(item.cover || (type === 'image' ? item.images?.[0] : undefined))
 
 	// 按容器实际宽度算缩放比，让 1280 宽的看板正好铺满卡片
 	useEffect(() => {
@@ -50,7 +51,7 @@ function BoardThumb({ item }: { item: BoardIndexItem }) {
 	useEffect(() => {
 		if (type !== 'html' || !hovered || html || staticImage) return
 		let cancelled = false
-		fetch(`/boards/${encodeURIComponent(item.slug)}/index.html`)
+		fetch(withBase(`/boards/${encodeURIComponent(item.slug)}/index.html`))
 			.then(r => (r.ok ? r.text() : null))
 			.then(t => {
 				if (!cancelled && t) setHtml(t)

@@ -11,10 +11,31 @@ import { useEffect } from 'react'
 import { toast } from 'sonner'
 import { clearDraft, draftKey, loadDraft } from './services/draft-store'
 
+/**
+ * 编辑页。新建与编辑共用同一个路由：
+ *   /write            新建
+ *   /write?slug=xxx   编辑已有看板
+ *
+ * 用查询参数而不是 /write/[slug] 动态段，是因为站点是静态导出
+ * （output: 'export'），动态路由必须在构建时穷举所有 slug —— 而看板
+ * 是发布后才产生的，做不到。查询参数下整站只需要一个 /write 静态页。
+ */
 export default function WritePage() {
-	const { form, cover, reset } = useWriteStore()
+	const { reset } = useWriteStore()
 
 	useEffect(() => {
+		const slug = new URLSearchParams(window.location.search).get('slug')
+
+		if (slug) {
+			// 编辑模式：加载失败时 loadBoardForEdit 内部已经 toast 过
+			useWriteStore
+				.getState()
+				.loadBoardForEdit(slug)
+				.catch(() => {})
+			return
+		}
+
+		// 新建模式：尝试恢复上次未发布的草稿
 		;(async () => {
 			const draft = loadDraft(draftKey('create', null))
 			if (draft && (draft.form.title || draft.form.content || draft.form.snapshot)) {
@@ -38,8 +59,6 @@ export default function WritePage() {
 	}, [])
 
 	const { isPreview, closePreview } = usePreviewStore()
-
-	const coverPreviewUrl = cover ? (cover.type === 'url' ? cover.url : cover.previewUrl) : null
 
 	return isPreview ? (
 		<WritePreview onClose={closePreview} />

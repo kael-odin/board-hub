@@ -1,4 +1,5 @@
 import { normalizeBoardType, type BoardConfig, type BoardType } from '@/app/boards/types'
+import { withBase } from '@/lib/asset-path'
 
 export type { BoardConfig } from '@/app/boards/types'
 
@@ -24,7 +25,7 @@ export async function loadBoard(slug: string): Promise<LoadedBoard> {
 		throw new Error('Slug is required')
 	}
 
-	const base = `/boards/${encodeURIComponent(slug)}`
+	const base = withBase(`/boards/${encodeURIComponent(slug)}`)
 
 	// config.json 缺失时降级为空对象（此时按 html 处理）
 	let config: BoardConfig = {}

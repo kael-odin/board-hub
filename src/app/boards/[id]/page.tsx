@@ -59,6 +59,25 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 	}
 }
 
+/**
+ * 静态导出需要在构建时枚举所有看板 slug。
+ * slug 列表来自 public/boards/index.json —— 发布看板会 push 到仓库并触发重新构建，
+ * 所以新看板在下次部署后就会有对应的静态页。
+ */
+export async function generateStaticParams() {
+	try {
+		const raw = await fs.readFile(path.join(process.cwd(), 'public', 'boards', 'index.json'), 'utf-8')
+		const list = JSON.parse(raw) as Array<{ slug?: string }>
+		return list.filter(item => typeof item?.slug === 'string' && /^[a-zA-Z0-9_-]{1,120}$/.test(item.slug!)).map(item => ({ id: item.slug! }))
+	} catch {
+		// 索引缺失时导出空列表，首页仍可正常构建
+		return []
+	}
+}
+
+/** 未在构建时枚举到的 slug 直接 404，静态导出下没有按需渲染 */
+export const dynamicParams = false
+
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params
 	return <BoardView slug={id} />
