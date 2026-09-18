@@ -109,11 +109,15 @@ export default function NavCard() {
 						</>
 					)}
 
-					<Link className='flex items-center gap-3' href='/'>
-						<Image src={withBase('/images/avatar.png')} alt='avatar' width={40} height={40} style={{ boxShadow: ' 0 12px 20px -5px #E2D9CE' }} className='rounded-full' />
-						{form === 'full' && <span className='font-averia mt-1 text-2xl leading-none font-medium'>{siteContent.meta.title}</span>}
-						{form === 'full' && <span className='text-brand mt-2 text-xs font-medium'>看板 · Boards</span>}
-					</Link>
+					{/* 头像只在竖排（full）形态下显示；紧凑形态下页面头部已经有了，
+					    两个都放会重复，视觉上很吵 */}
+					{form === 'full' && (
+						<Link className='flex items-center gap-3' href='/'>
+							<Image src={withBase('/images/avatar.png')} alt='avatar' width={40} height={40} style={{ boxShadow: ' 0 12px 20px -5px #E2D9CE' }} className='rounded-full' />
+							<span className='font-averia mt-1 text-2xl leading-none font-medium'>{siteContent.meta.title}</span>
+							<span className='text-brand mt-2 text-xs font-medium'>看板 · Boards</span>
+						</Link>
+					)}
 
 					{(form === 'full' || form === 'icons') && (
 						<>

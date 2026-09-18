@@ -94,9 +94,38 @@ pnpm svg          # 重新生成 src/svgs/index.ts（改了 SVG 后运行）
 
 ## 部署
 
+整站是**完全静态**的（`output: 'export'`）—— 内容都在 `public/` 下，写操作由浏览器直连 GitHub API，没有任何需要服务端渲染的东西。所以能部署到任意静态托管。
+
+### GitHub Pages（当前）
+
+推送到 `main` 会自动触发 `.github/workflows/deploy-pages.yml` 构建并发布到
+**https://kael-odin.github.io/board-hub/**
+
+Pages 部署在 `/<repo>/` 子路径下，因此构建时必须设置 `NEXT_PUBLIC_BASE_PATH=/board-hub`，
+否则 `public/` 下的内容路径与 `/_next` 资源都会 404。这一点由 `src/lib/asset-path.ts` 处理：
+
+- `withBase(path)` —— 给单个站内绝对路径加前缀
+- `rewriteAssets(text)` —— 批量重写看板正文里写死的 `/boards/...`
+
+部署在根路径（Vercel / 自定义域名）时把 `NEXT_PUBLIC_BASE_PATH` 留空，这两个函数会退化成恒等操作。
+
+首次部署需要在仓库 **Settings → Pages** 把 Source 设为 **GitHub Actions**，
+并在 **Settings → Secrets and variables → Actions** 添加两个 secret：
+
+| Secret | 说明 |
+|---|---|
+| `NEXT_PUBLIC_GITHUB_APP_ID` | GitHub App 的 App ID |
+| `NEXT_PUBLIC_GITHUB_ENCRYPT_KEY` | 加密浏览器缓存的私钥用，随便一串随机字符 |
+
+> 看板发布本身也是一次 commit，所以内容更新后 Pages 会自动重新部署。
+
+### Vercel
+
+直接导入仓库即可，无需额外配置。**记得把 `NEXT_PUBLIC_BASE_PATH` 留空**。
+
 ### 1. 环境变量
 
-在 Vercel 项目里配置（参考 `.env.example`）：
+部署平台的环境变量（参考 `.env.example`）：
 
 | 变量 | 说明 |
 |---|---|
