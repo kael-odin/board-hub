@@ -31,15 +31,38 @@ AI 把 Excel 整理成 HTML
 
 ## 内容结构
 
+一个看板由 `config.json` 里的 `type` 字段决定形态：
+
 ```
 public/boards/<slug>/
-  ├── index.html     看板本体（一段完整的 HTML 文档）
-  ├── config.json    { title, tags, date, summary, cover, hidden, category }
-  └── <sha256>.<ext> 图片等资源（上传时按内容哈希命名）
+  ├── index.html      type=html      iframe 隔离渲染
+  ├── index.md        type=markdown  走站点的 markdown 渲染链
+  ├── sheet.json      type=sheet     Univer 快照，可在线编辑
+  ├── config.json     { title, type, tags, date, summary, cover, hidden, category, images }
+  └── <sha256>.<ext>  图片等资源（上传时按内容哈希命名）
 public/boards/index.json   列表索引（发布时由浏览器写入）
 ```
 
-`public/boards/demo/` 是一个可直接参考的示例看板。
+| type | 查看 | 编辑 |
+|---|---|---|
+| `html` | `<iframe srcdoc sandbox="allow-scripts">` 完全隔离 | CodeMirror（HTML 高亮） |
+| `markdown` | marked + shiki + katex + mermaid + DOMPurify | CodeMirror（Markdown 高亮） |
+| `image` | 图墙 + 灯箱（方向键切换） | 在「图片管理」里增删排序 |
+| `sheet` | Univer 表格引擎（只读） | Univer 表格引擎（可编辑） |
+
+`type` 缺省时按 `html` 处理，因此加字段之前发布的内容不会失效。
+
+示例：`public/boards/demo/`（HTML）、`public/boards/sheet-demo/`（表格）。
+
+### 关于 Excel
+
+零后端：`.xlsx` 在前端用 SheetJS 解析成 Univer 快照，存进仓库的是 **JSON 文本**（可 diff、体积小），需要时再现场导出成 `.xlsx`。
+
+**为什么存 JSON 而不是 .xlsx**：`.xlsx` 是二进制 zip，git 无法 diff，每次保存都新增一个完整 blob，仓库会迅速膨胀。
+
+> ⚠️ **保真度有损**：本适配层只搬运「值 + 公式 + 日期 + 多工作表」，**不搬运样式、条件格式、图表、透视表**。
+> 官方的完整转换由 `@univerjs-pro/exchange-node` 完成，那是商业授权的 Pro 模块且需要常驻 Node 服务 ——
+> 采用它就会打破本项目「纯 Vercel + git、零后端」的架构，因此没有采用。
 
 ---
 
