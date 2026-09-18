@@ -1,22 +1,32 @@
 import { motion } from 'motion/react'
-import { BoardFrame } from '@/components/board-frame'
+import { BoardBody } from '@/components/board-body'
 import { useWriteData } from '../hooks/use-write-data'
-import type { PublishForm } from '../types'
+import { useWriteStore } from '../stores/write-store'
 
 type WritePreviewProps = {
-	form: PublishForm
-	coverPreviewUrl: string | null
 	onClose: () => void
 	slug?: string
 }
 
-/** 全屏预览 —— 直接按最终呈现效果渲染看板 */
-export function WritePreview({ form, onClose }: WritePreviewProps) {
+/** 全屏预览 —— 与线上查看页使用同一套渲染器 */
+export function WritePreview({ onClose }: WritePreviewProps) {
+	const { form } = useWriteStore()
 	const previewData = useWriteData()
+
+	// 表格类型自带工具栏，不套白底容器
+	const bare = form.type === 'sheet'
+
 	return (
 		<div>
-			<div onClick={e => e.stopPropagation()}>
-				<BoardFrame html={previewData.html} title={form.title || '看板预览'} className='h-[calc(100vh-2rem)] w-full rounded-[40px] border-0' />
+			<div className={bare ? 'h-[calc(100vh-6rem)]' : 'h-[calc(100vh-6rem)] overflow-hidden rounded-[40px] border bg-white shadow'}>
+				<BoardBody
+					type={form.type}
+					content={previewData.content}
+					snapshot={form.snapshot}
+					images={previewData.galleryImages}
+					title={previewData.title}
+					readOnly
+				/>
 			</div>
 			<motion.button
 				initial={{ opacity: 0, scale: 0.6 }}

@@ -51,14 +51,16 @@ export function WriteActions() {
 		htmlInputRef.current?.click()
 	}
 
-	const handleHtmlFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+	// 按扩展名判断是 Markdown 还是 HTML，导入的同时把内容类型切过去
+	const handleTextFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
 		if (!file) return
 
 		try {
 			const text = await file.text()
-			updateForm({ html: text })
-			toast.success('已导入 HTML 文件')
+			const isMarkdown = /\.(md|markdown|mdx)$/i.test(file.name)
+			updateForm({ content: text, type: isMarkdown ? 'markdown' : 'html' })
+			toast.success(isMarkdown ? '已导入 Markdown 文件' : '已导入 HTML 文件')
 		} catch (error) {
 			toast.error('导入失败，请重试')
 		} finally {
@@ -79,7 +81,7 @@ export function WriteActions() {
 					if (e.currentTarget) e.currentTarget.value = ''
 				}}
 			/>
-			<input ref={htmlInputRef} type='file' accept='.html,.htm' className='hidden' onChange={handleHtmlFileChange} />
+			<input ref={htmlInputRef} type='file' accept='.html,.htm,.md,.markdown' className='hidden' onChange={handleTextFileChange} />
 
 			<ul className='absolute top-3 right-3 left-3 flex flex-wrap items-center justify-end gap-2 sm:top-4 sm:right-6 sm:left-auto'>
 				{mode === 'edit' && (
@@ -118,7 +120,7 @@ export function WriteActions() {
 					className='bg-card rounded-xl border px-4 py-2 text-sm'
 					disabled={loading}
 					onClick={handleImportHtml}>
-					导入 HTML
+					导入文件
 				</motion.button>
 				<motion.button
 					initial={{ opacity: 0, scale: 0.6 }}

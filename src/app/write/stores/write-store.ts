@@ -70,7 +70,9 @@ type WriteStore = {
 const initialForm: PublishForm = {
 	slug: '',
 	title: '',
-	html: '',
+	type: 'html',
+	content: '',
+	snapshot: null,
 	tags: [],
 	date: formatDateTimeLocal(),
 	summary: '',
@@ -220,20 +222,22 @@ export const useWriteStore = create<WriteStore>((set, get) => ({
 			set({ loading: true })
 			const board = await loadBoard(slug)
 
-			// 从 HTML 里提取引用的图片/视频，避免重复上传。
-			// 只收集被 `<img src>` / `<video src>` / `<source src>` 引用，
-			// 且不是封面、不是尚未上传的 local-image 占位符的资源。
+			// 按内容类型把已引用的图片回填到图片列表，避免重复上传
 			const images: ImageItem[] = []
-			const srcRegex = /<(?:img|video|source)\b[^>]*?\bsrc\s*=\s*["']([^"']+)["']/gi
-			let match
-			while ((match = srcRegex.exec(board.html)) !== null) {
-				const url = match[1]
-				if (url && url !== board.cover && !url.startsWith('local-image:') && !url.startsWith('data:')) {
-					if (!images.some(img => img.type === 'url' && img.url === url)) {
-						const id = Math.random().toString(36).slice(2, 10)
-						images.push({ id, type: 'url', url })
-					}
+			const pushImage = (url: string) => {
+				if (!url || url === board.cover || url.startsWith('local-image:') || url.startsWith('data:')) return
+				if (!images.some(img => img.type === 'url' && img.url === url)) {
+					images.push({ id: Math.random().toString(36).slice(2, 10), type: 'url', url })
 				}
+			}
+
+			if (board.type === 'image') {
+				// 图片看板：内容本身就是这一串图片
+				for (const url of board.images) pushImage(url)
+			} else if (board.text) {
+				// html / markdown：从正文里扫出被引用的资源
+				for (const m of board.text.matchAll(/<(?:img|video|source)\b[^>]*?\bsrc\s*=\s*["']([^"']+)["']/gi)) pushImage(m[1])
+				for (const m of board.text.matchAll(/!\[[^\]]*\]\(([^)\s]+)/g)) pushImage(m[1])
 			}
 
 			// Set cover
@@ -250,7 +254,9 @@ export const useWriteStore = create<WriteStore>((set, get) => ({
 				form: {
 					slug,
 					title: board.config.title || '',
-					html: board.html,
+					type: board.type,
+					content: board.text,
+					snapshot: board.snapshot,
 					tags: board.config.tags || [],
 					date: board.config.date ? formatDateTimeLocal(new Date(board.config.date)) : formatDateTimeLocal(),
 					summary: board.config.summary || '',
@@ -266,7 +272,7 @@ export const useWriteStore = create<WriteStore>((set, get) => ({
 
 			// 线上加载完后检查本地草稿：若与线上内容不同，视为未保存的修改，恢复之
 			const draft = loadDraft(draftKey('edit', slug))
-			if (draft && draft.form.html !== board.html) {
+			if (draft && (draft.form.content !== board.text || draft.form.type !== board.type)) {
 				await get().restoreFromDraft(draft)
 				toast.success('已恢复本地未保存的修改', {
 					description: `草稿保存于 ${new Date(draft.savedAt).toLocaleString('zh-CN')}，发布后自动清除`

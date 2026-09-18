@@ -29,7 +29,7 @@ export default function EditBoardPage() {
 	}
 
 	return isPreview ? (
-		<WritePreview form={form} coverPreviewUrl={coverPreviewUrl} onClose={closePreview} slug={slug} />
+		<WritePreview onClose={closePreview} slug={slug} />
 	) : (
 		<>
 			<div className='flex h-full flex-col items-center justify-center gap-6 px-4 pt-24 pb-12 sm:px-6 lg:flex-row lg:items-start'>

@@ -1,8 +1,16 @@
+import type { BoardType } from '@/app/boards/types'
+
 export type PublishForm = {
 	slug: string
 	title: string
-	/** 看板本体：一段完整的 HTML 文档（由 AI 从表格生成，或在网页内直接编辑） */
-	html: string
+	/** 内容类型，决定发布时写哪个文件、用什么编辑器 */
+	type: BoardType
+
+	/** html / markdown 类型的正文文本 */
+	content: string
+	/** sheet 类型的快照数据（Univer IWorkbookData） */
+	snapshot: unknown | null
+
 	tags: string[]
 	date: string
 	summary: string

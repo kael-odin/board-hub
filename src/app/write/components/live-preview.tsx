@@ -5,7 +5,7 @@ import { motion } from 'motion/react'
 import dayjs from 'dayjs'
 import { useWriteStore } from '../stores/write-store'
 import { usePreviewStore, initLivePreview } from '../stores/preview-store'
-import { BoardFrame } from '@/components/board-frame'
+import { BoardBody } from '@/components/board-body'
 import { useWriteData } from '../hooks/use-write-data'
 
 /** 编辑器右侧分屏实时预览（仅超宽屏显示，可用按钮开关） */
@@ -13,7 +13,7 @@ export function WriteLivePreview() {
 	const { form } = useWriteStore()
 	const livePreview = usePreviewStore(state => state.livePreview)
 	const toggleLivePreview = usePreviewStore(state => state.toggleLivePreview)
-	const { html } = useWriteData()
+	const previewData = useWriteData()
 
 	useEffect(() => {
 		initLivePreview()
@@ -41,9 +41,16 @@ export function WriteLivePreview() {
 					关闭
 				</button>
 			</div>
-			{/* 看板在 iframe 里独立渲染，样式与站点完全隔离 */}
+			{/* 与线上查看页共用同一套渲染器，避免预览和实际效果不一致 */}
 			<div className='min-h-0 flex-1 bg-white'>
-				<BoardFrame html={html} title={form.title || '看板预览'} className='h-full w-full border-0' />
+				<BoardBody
+					type={form.type}
+					content={previewData.content}
+					snapshot={form.snapshot}
+					images={previewData.galleryImages}
+					title={previewData.title}
+					readOnly
+				/>
 			</div>
 		</motion.aside>
 	)

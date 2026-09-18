@@ -7,13 +7,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'motion/react'
 import { useCenterStore } from '@/hooks/use-center'
 import { CARD_SPACING } from '@/consts'
-import ScrollOutlineSVG from '@/svgs/scroll-outline.svg'
-import ScrollFilledSVG from '@/svgs/scroll-filled.svg'
 import ProjectsFilledSVG from '@/svgs/projects-filled.svg'
 import ProjectsOutlineSVG from '@/svgs/projects-outline.svg'
-import AboutFilledSVG from '@/svgs/about-filled.svg'
-import AboutOutlineSVG from '@/svgs/about-outline.svg'
-import PicturesSVG from '@/svgs/pictures.svg'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
 import { cn } from '@/lib/utils'
@@ -21,30 +16,13 @@ import { useSize } from '@/hooks/use-size'
 import { useConfigStore } from '@/app/(home)/stores/config-store'
 import { HomeDraggableLayer } from '@/app/(home)/home-draggable-layer'
 
+// 装饰页删除后只剩看板一个入口，导航保留它兼作"回到列表"
 const list = [
 	{
 		icon: ProjectsOutlineSVG,
 		iconActive: ProjectsFilledSVG,
 		label: '全部看板',
 		href: '/boards'
-	},
-	{
-		icon: ScrollOutlineSVG,
-		iconActive: ScrollFilledSVG,
-		label: '时钟',
-		href: '/clock'
-	},
-	{
-		icon: PicturesSVG,
-		iconActive: PicturesSVG,
-		label: 'Live2D',
-		href: '/live2d'
-	},
-	{
-		icon: AboutOutlineSVG,
-		iconActive: AboutFilledSVG,
-		label: '关于',
-		href: '/about'
 	}
 ]
 

@@ -5,14 +5,15 @@ import { useRouter } from 'next/navigation'
 import dayjs from 'dayjs'
 import Link from 'next/link'
 import { motion } from 'motion/react'
-import { BoardFrame } from '@/components/board-frame'
-import { loadBoard, type BoardConfig } from '@/lib/load-board'
+import { BoardBody } from '@/components/board-body'
+import { BOARD_TYPE_LABELS, normalizeBoardType, type BoardType } from '@/app/boards/types'
+import { loadBoard, type LoadedBoard } from '@/lib/load-board'
 import { hasAuth } from '@/lib/auth'
 
 export default function BoardView({ slug }: { slug: string }) {
 	const router = useRouter()
 
-	const [board, setBoard] = useState<{ config: BoardConfig; html: string; cover?: string } | null>(null)
+	const [board, setBoard] = useState<LoadedBoard | null>(null)
 	const [error, setError] = useState<string | null>(null)
 	const [loading, setLoading] = useState<boolean>(true)
 
@@ -52,6 +53,7 @@ export default function BoardView({ slug }: { slug: string }) {
 	const title = useMemo(() => (board?.config.title ? board.config.title : slug), [board?.config.title, slug])
 	const date = useMemo(() => (board?.config.date ? dayjs(board.config.date).format('YYYY年 M月 D日') : ''), [board?.config.date])
 	const tags = board?.config.tags || []
+	const type: BoardType = board ? normalizeBoardType(board.type) : 'html'
 
 	if (!slug) {
 		return <div className='text-secondary flex h-full items-center justify-center text-sm'>无效的链接</div>
@@ -76,6 +78,9 @@ export default function BoardView({ slug }: { slug: string }) {
 		return <div className='text-secondary flex h-full items-center justify-center text-sm'>看板不存在</div>
 	}
 
+	// 表格类型自带工具栏，不套外层白底容器和圆角裁切
+	const bare = type === 'sheet'
+
 	return (
 		<div className='flex h-[100dvh] flex-col px-4 pt-20 pb-4 sm:px-6'>
 			{/* 头部信息条 */}
@@ -86,6 +91,7 @@ export default function BoardView({ slug }: { slug: string }) {
 				<h1 className='min-w-0 flex-1 truncate text-base font-medium'>{title}</h1>
 
 				<div className='flex shrink-0 items-center gap-3'>
+					<span className='bg-secondary/10 rounded px-2 py-0.5 text-[11px]'>{BOARD_TYPE_LABELS[type]}</span>
 					{tags.slice(0, 4).map(tag => (
 						<span key={tag} className='bg-secondary/10 rounded px-2 py-0.5 text-[11px]'>
 							{tag}
@@ -104,9 +110,9 @@ export default function BoardView({ slug }: { slug: string }) {
 				</div>
 			</header>
 
-			{/* 看板本体：iframe 隔离渲染，占据剩余全部高度 */}
-			<div className='min-h-0 flex-1 overflow-hidden rounded-2xl border bg-white shadow'>
-				<BoardFrame html={board.html} title={title} className='h-full w-full border-0' />
+			{/* 正文：占满剩余高度 */}
+			<div className={`min-h-0 flex-1 overflow-hidden ${bare ? '' : 'rounded-2xl border bg-white shadow'}`}>
+				<BoardBody type={type} content={board.text} snapshot={board.snapshot} images={board.images} title={title} readOnly />
 			</div>
 		</div>
 	)

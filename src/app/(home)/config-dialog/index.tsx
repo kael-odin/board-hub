@@ -10,14 +10,13 @@ import { pushSiteContent } from '../services/push-site-content'
 import type { SiteContent, CardStyles } from '../stores/config-store'
 import { SiteSettings, type FileItem, type ArtImageUploads, type BackgroundImageUploads, type SocialButtonImageUploads } from './site-settings'
 import { ColorConfig } from './color-config'
-import { HomeLayout } from './home-layout'
 
 interface ConfigDialogProps {
 	open: boolean
 	onClose: () => void
 }
 
-type TabType = 'site' | 'color' | 'layout'
+type TabType = 'site' | 'color'
 
 export default function ConfigDialog({ open, onClose }: ConfigDialogProps) {
 	const { isAuth, setPrivateKey } = useAuthStore()
@@ -224,8 +223,7 @@ export default function ConfigDialog({ open, onClose }: ConfigDialogProps) {
 
 	const tabs: { id: TabType; label: string }[] = [
 		{ id: 'site', label: '网站设置' },
-		{ id: 'color', label: '色彩配置' },
-		{ id: 'layout', label: '首页布局' }
+		{ id: 'color', label: '色彩配置' }
 	]
 
 	return (
@@ -297,7 +295,6 @@ export default function ConfigDialog({ open, onClose }: ConfigDialogProps) {
 						/>
 					)}
 					{activeTab === 'color' && <ColorConfig formData={formData} setFormData={setFormData} />}
-					{activeTab === 'layout' && <HomeLayout cardStylesData={cardStylesData} setCardStylesData={setCardStylesData} onClose={onClose} />}
 				</div>
 			</DialogModal>
 		</>

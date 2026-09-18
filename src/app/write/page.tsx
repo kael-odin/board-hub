@@ -17,7 +17,7 @@ export default function WritePage() {
 	useEffect(() => {
 		;(async () => {
 			const draft = loadDraft(draftKey('create', null))
-			if (draft && (draft.form.title || draft.form.html)) {
+			if (draft && (draft.form.title || draft.form.content || draft.form.snapshot)) {
 				const { filesDropped } = await useWriteStore.getState().restoreFromDraft(draft)
 				toast.success('已恢复上次未发布的草稿', {
 					description: `保存于 ${new Date(draft.savedAt).toLocaleString('zh-CN')}`,
@@ -42,7 +42,7 @@ export default function WritePage() {
 	const coverPreviewUrl = cover ? (cover.type === 'url' ? cover.url : cover.previewUrl) : null
 
 	return isPreview ? (
-		<WritePreview form={form} coverPreviewUrl={coverPreviewUrl} onClose={closePreview} />
+		<WritePreview onClose={closePreview} />
 	) : (
 		<>
 			<div className='flex h-full flex-col items-center justify-center gap-6 px-4 pt-24 pb-12 sm:px-6 lg:flex-row lg:items-start'>

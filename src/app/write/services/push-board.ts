@@ -4,6 +4,7 @@ import { prepareBoardsIndex, BOARDS_INDEX_PATH } from '@/lib/board-index'
 import { getAuthToken } from '@/lib/auth'
 import { GITHUB_CONFIG } from '@/consts'
 import type { ImageItem } from '../types'
+import type { BoardType } from '@/app/boards/types'
 import { getFileExt } from '@/lib/utils'
 import { toast } from 'sonner'
 import { formatDateTimeLocal } from '../stores/write-store'
@@ -12,7 +13,9 @@ export type PushBoardParams = {
 	form: {
 		slug: string
 		title: string
-		html: string
+		type: BoardType
+		content: string
+		snapshot: unknown | null
 		tags: string[]
 		date?: string
 		summary?: string
@@ -28,15 +31,33 @@ export type PushBoardParams = {
 /** 看板在仓库里的目录前缀 */
 export const BOARDS_DIR = 'public/boards'
 
+/** 每种类型对应的正文文件名；image 类型没有正文文件，内容就是图片列表 */
+const ENTRY_FILE: Record<BoardType, string | null> = {
+	html: 'index.html',
+	markdown: 'index.md',
+	sheet: 'sheet.json',
+	image: null
+}
+
+/** 编辑时不能误删的文件（正文 + 元信息 + 原始 xlsx 附件） */
+function isProtectedPath(p: string): boolean {
+	return p.endsWith('/index.html') || p.endsWith('/index.md') || p.endsWith('/sheet.json') || p.endsWith('/config.json')
+}
+
 export async function pushBoard(params: PushBoardParams): Promise<void> {
 	const { form, cover, images, mode = 'create', originalSlug } = params
 
 	// 基础校验（放在鉴权之前，未导入私钥也能先得到表单错误提示）
 	if (!form?.slug) throw new Error('需要 slug')
 	if (!form.title?.trim()) throw new Error('标题不能为空')
-	if (!form.html?.trim()) throw new Error('看板内容不能为空')
 	if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/.test(form.slug)) {
 		throw new Error('slug 只能包含英文、数字、连字符和下划线，以英文或数字开头，长度不超过 80')
+	}
+	if (form.type === 'html' || form.type === 'markdown') {
+		if (!form.content?.trim()) throw new Error(`${form.type === 'html' ? 'HTML' : 'Markdown'} 内容不能为空`)
+	}
+	if (form.type === 'sheet' && !form.snapshot) {
+		throw new Error('表格内容为空，请先导入或新建表格')
 	}
 
 	if (mode === 'edit' && originalSlug && originalSlug !== form.slug) {
@@ -66,28 +87,22 @@ export async function pushBoard(params: PushBoardParams): Promise<void> {
 	const basePath = `${BOARDS_DIR}/${form.slug}`
 	const commitMessage = mode === 'edit' ? `更新看板: ${form.slug}` : `新增看板: ${form.slug}`
 
-	// 收集所有本地图片（正文 + 封面）
+	// 收集所有需要上传的本地图片（正文引用 + 封面 + 图片看板的图）
 	const allLocalImages: Array<{ img: Extract<ImageItem, { type: 'file' }>; id: string }> = []
-
 	for (const img of images || []) {
-		if (img.type === 'file') {
-			allLocalImages.push({ img, id: img.id })
-		}
+		if (img.type === 'file') allLocalImages.push({ img, id: img.id })
 	}
-
-	if (cover?.type === 'file') {
-		allLocalImages.push({ img: cover, id: cover.id })
-	}
+	if (cover?.type === 'file') allLocalImages.push({ img: cover, id: cover.id })
 
 	toast.info('正在准备文件...')
 
 	const uploadedHashes = new Set<string>()
-	let htmlToUpload = form.html
-	let coverPath: string | undefined
-
 	const treeItems: TreeItem[] = []
+	let contentToUpload = form.content
+	let coverPath: string | undefined
+	/** 图片看板用：每张图在仓库里的公开路径 */
+	const galleryPaths: string[] = []
 
-	// 上传图片，并把 HTML 里的 local-image: 占位符换成真实路径
 	if (allLocalImages.length > 0) {
 		toast.info('正在上传图片...')
 		for (const { img, id } of allLocalImages) {
@@ -100,69 +115,74 @@ export async function pushBoard(params: PushBoardParams): Promise<void> {
 				const path = `${basePath}/${filename}`
 				const contentBase64 = await fileToBase64NoPrefix(img.file)
 				const blobData = await createBlob(token, GITHUB_CONFIG.OWNER, GITHUB_CONFIG.REPO, contentBase64, 'base64')
-				treeItems.push({
-					path,
-					mode: '100644',
-					type: 'blob',
-					sha: blobData.sha
-				})
+				treeItems.push({ path, mode: '100644', type: 'blob', sha: blobData.sha })
 				uploadedHashes.add(hash)
 			}
 
-			// HTML 里的占位符是 src="local-image:xxx"，所以直接替换裸 token 即可
-			htmlToUpload = htmlToUpload.split(`local-image:${id}`).join(publicPath)
-
-			if (cover?.type === 'file' && cover.id === id) {
-				coverPath = publicPath
+			// 正文里的占位符换成真实路径
+			if (contentToUpload) {
+				contentToUpload = contentToUpload.split(`local-image:${id}`).join(publicPath)
 			}
+
+			if (cover?.type === 'file' && cover.id === id) coverPath = publicPath
 		}
 	}
 
-	// 外链封面
-	if (cover?.type === 'url') {
-		coverPath = cover.url
+	// 图片列表：外链保持原样，本地文件用上传后的路径
+	for (const img of images || []) {
+		galleryPaths.push(img.type === 'url' ? img.url : `/boards/${form.slug}/${img.hash}${getFileExt(img.filename || '')}`)
 	}
 
-	// 编辑模式：回收目录下已不被引用的旧资源，避免仓库积累孤儿文件
+	if (cover?.type === 'url') coverPath = cover.url
+
+	// 图片看板没手动设封面时，用第一张图当封面 —— 卡片墙就有缩略图可显示，
+	// 索引里也不用再存整个图片列表
+	if (!coverPath && form.type === 'image' && galleryPaths.length > 0) {
+		coverPath = galleryPaths[0]
+	}
+
+	// 编辑模式：回收目录下已不被引用的旧资源
 	if (mode === 'edit' && originalSlug) {
 		try {
-			toast.info('正在检查旧图片引用...')
+			toast.info('正在检查旧文件引用...')
 			const newRefs = new Set<string>()
 			const collect = (text?: string | null) => {
 				if (!text) return
 				for (const m of text.matchAll(new RegExp(`/boards/${form.slug}/[A-Za-z0-9._-]+`, 'g'))) newRefs.add(m[0])
 			}
-			collect(htmlToUpload)
+			collect(contentToUpload)
 			if (coverPath) newRefs.add(coverPath)
+			for (const p of galleryPaths) newRefs.add(p)
 
 			const existing = await listRepoFilesRecursive(token, GITHUB_CONFIG.OWNER, GITHUB_CONFIG.REPO, basePath, latestCommitSha)
 			for (const p of existing) {
-				if (p.endsWith('/index.html') || p.endsWith('/config.json')) continue
+				if (isProtectedPath(p)) continue
 				if (!newRefs.has(`/${p}`)) {
 					treeItems.push({ path: p, mode: '100644', type: 'blob', sha: null })
 				}
 			}
 		} catch (err) {
 			// 清理失败不阻塞发布
-			console.warn('orphan image cleanup skipped:', err)
+			console.warn('orphan file cleanup skipped:', err)
 		}
 	}
 
 	toast.info('正在创建文件...')
 
-	// 看板本体
-	const htmlBlob = await createBlob(token, GITHUB_CONFIG.OWNER, GITHUB_CONFIG.REPO, toBase64Utf8(htmlToUpload), 'base64')
-	treeItems.push({
-		path: `${basePath}/index.html`,
-		mode: '100644',
-		type: 'blob',
-		sha: htmlBlob.sha
-	})
+	// 正文文件：按类型决定文件名和内容
+	const entry = ENTRY_FILE[form.type]
+	if (entry) {
+		const body =
+			form.type === 'sheet' ? JSON.stringify(form.snapshot, null, 2) : contentToUpload
+		const blob = await createBlob(token, GITHUB_CONFIG.OWNER, GITHUB_CONFIG.REPO, toBase64Utf8(body), 'base64')
+		treeItems.push({ path: `${basePath}/${entry}`, mode: '100644', type: 'blob', sha: blob.sha })
+	}
 
 	// 元信息
 	const dateStr = form.date || formatDateTimeLocal()
-	const config = {
+	const config: Record<string, unknown> = {
 		title: form.title,
+		type: form.type,
 		tags: form.tags,
 		date: dateStr,
 		summary: form.summary,
@@ -170,14 +190,11 @@ export async function pushBoard(params: PushBoardParams): Promise<void> {
 		hidden: form.hidden,
 		category: form.category
 	}
+	// 图片看板把图片列表也存进元信息，渲染时直接读它
+	if (form.type === 'image') config.images = galleryPaths
 
 	const configBlob = await createBlob(token, GITHUB_CONFIG.OWNER, GITHUB_CONFIG.REPO, toBase64Utf8(JSON.stringify(config, null, 2)), 'base64')
-	treeItems.push({
-		path: `${basePath}/config.json`,
-		mode: '100644',
-		type: 'blob',
-		sha: configBlob.sha
-	})
+	treeItems.push({ path: `${basePath}/config.json`, mode: '100644', type: 'blob', sha: configBlob.sha })
 
 	// 列表索引
 	const indexJson = await prepareBoardsIndex(
@@ -187,6 +204,7 @@ export async function pushBoard(params: PushBoardParams): Promise<void> {
 		{
 			slug: form.slug,
 			title: form.title,
+			type: form.type,
 			tags: form.tags,
 			date: dateStr,
 			summary: form.summary,
@@ -197,12 +215,7 @@ export async function pushBoard(params: PushBoardParams): Promise<void> {
 		GITHUB_CONFIG.BRANCH
 	)
 	const indexBlob = await createBlob(token, GITHUB_CONFIG.OWNER, GITHUB_CONFIG.REPO, toBase64Utf8(indexJson), 'base64')
-	treeItems.push({
-		path: BOARDS_INDEX_PATH,
-		mode: '100644',
-		type: 'blob',
-		sha: indexBlob.sha
-	})
+	treeItems.push({ path: BOARDS_INDEX_PATH, mode: '100644', type: 'blob', sha: indexBlob.sha })
 
 	toast.info('正在创建文件树...')
 	const treeData = await createTree(token, GITHUB_CONFIG.OWNER, GITHUB_CONFIG.REPO, treeItems, latestCommitSha)

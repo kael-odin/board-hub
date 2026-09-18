@@ -8,7 +8,6 @@ import { CircleCheckIcon, InfoIcon, Loader2Icon, OctagonXIcon, TriangleAlertIcon
 import { useSize, useSizeInit } from '@/hooks/use-size'
 import { useConfigStore } from '@/app/(home)/stores/config-store'
 import { ScrollTopButton } from '@/components/scroll-top-button'
-import MusicCard from '@/components/music-card'
 import ThemeToggle from '@/components/theme-toggle'
 
 export default function Layout({ children }: PropsWithChildren) {
@@ -57,7 +56,6 @@ export default function Layout({ children }: PropsWithChildren) {
 				{children}
 				<NavCard />
 
-				{!maxSM && cardStyles.musicCard?.enabled !== false && <MusicCard />}
 			</main>
 
 			<ThemeToggle />
