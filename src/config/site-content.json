@@ -1,0 +1,87 @@
+{
+	"meta": {
+		"title": "Board Hub",
+		"description": "看板与报表展示中心 · 由 AI 从表格生成",
+		"username": "Kael Odin"
+	},
+	"theme": {
+		"colorBrand": "#35bfab",
+		"colorPrimary": "#334f52",
+		"colorSecondary": "#7b888e",
+		"colorBrandSecondary": "#1fc9e7",
+		"colorBg": "#eeeeee",
+		"colorBorder": "#ffffff",
+		"colorCard": "#ffffff66",
+		"colorArticle": "#ffffffcc"
+	},
+	"backgroundColors": [
+		"#EDDD62",
+		"#9EE7D1",
+		"#84D68A",
+		"#EDDD62",
+		"#88E6E5",
+		"#a7f3d0"
+	],
+	"artImages": [
+		{
+			"id": "cat",
+			"url": "/images/art/cat.png"
+		},
+		{
+			"id": "a46372ff45bc5524",
+			"url": "/images/art/a46372ff45bc5524.jpg"
+		}
+	],
+	"currentArtImageId": "cat",
+	"backgroundImages": [
+		{
+			"id": "",
+			"url": ""
+		}
+	],
+	"currentBackgroundImageId": "",
+	"socialButtons": [
+		{
+			"id": "github",
+			"type": "github",
+			"value": "https://github.com/kael-odin",
+			"label": "GitHub",
+			"order": 1
+		},
+		{
+			"id": "button-1772591162791",
+			"type": "qq",
+			"value": "445481611",
+			"label": "",
+			"order": 2
+		},
+		{
+			"id": "email",
+			"type": "email",
+			"value": "t445481611@gmail.com",
+			"label": "",
+			"order": 3
+		}
+	],
+	"clockShowSeconds": false,
+	"summaryInContent": false,
+	"isCachePem": false,
+	"hideEditButton": false,
+	"enableCategories": true,
+	"currentHatIndex": 3,
+	"hatFlipped": false,
+	"enableChristmas": false,
+	"beian": {
+		"text": "",
+		"link": ""
+	},
+	"comments": {
+		"giscus": {
+			"enabled": false,
+			"repo": "",
+			"repoId": "",
+			"category": "Announcements",
+			"categoryId": ""
+		}
+	}
+}

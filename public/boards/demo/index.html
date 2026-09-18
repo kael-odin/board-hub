@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>示例看板 · 季度经营概览</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 故意用一套和站点完全不同的配色，用来验证 iframe 隔离是否生效 */
+    body { background: #0b1020 !important; color: #e6edf7 !important; font-family: system-ui, sans-serif; }
+    .card { background: #151b33; border: 1px solid #26304f; border-radius: 16px; padding: 20px; }
+    .metric { font-size: 30px; font-weight: 700; color: #6ee7b7; }
+  </style>
+</head>
+<body class="p-8">
+  <h1 class="text-2xl font-bold mb-1">季度经营概览</h1>
+  <p class="opacity-60 text-sm mb-8">这份 HTML 由 AI 从 Excel 生成 · 样式与站点完全隔离</p>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="card"><div class="opacity-60 text-sm">营收</div><div class="metric">¥ 12,480,000</div><div class="text-xs mt-1 opacity-60">环比 +18.2%</div></div>
+    <div class="card"><div class="opacity-60 text-sm">订单数</div><div class="metric">4,286</div><div class="text-xs mt-1 opacity-60">环比 +7.5%</div></div>
+    <div class="card"><div class="opacity-60 text-sm">客单价</div><div class="metric">¥ 2,912</div><div class="text-xs mt-1 opacity-60">环比 +9.9%</div></div>
+  </div>
+
+  <div class="card">
+    <div class="font-medium mb-4">各渠道表现</div>
+    <table class="w-full text-sm">
+      <thead class="opacity-60"><tr><th class="text-left py-2">渠道</th><th class="text-right">营收</th><th class="text-right">占比</th></tr></thead>
+      <tbody>
+        <tr class="border-t border-white/10"><td class="py-2">线上直销</td><td class="text-right">¥ 6,240,000</td><td class="text-right">50.0%</td></tr>
+        <tr class="border-t border-white/10"><td class="py-2">渠道分销</td><td class="text-right">¥ 3,744,000</td><td class="text-right">30.0%</td></tr>
+        <tr class="border-t border-white/10"><td class="py-2">线下门店</td><td class="text-right">¥ 2,496,000</td><td class="text-right">20.0%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // 验证看板自带脚本能正常执行（sandbox="allow-scripts"）
+    console.log('board script executed');
+    document.querySelector('h1').dataset.ok = '1';
+  </script>
+</body>
+</html>

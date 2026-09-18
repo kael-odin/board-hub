@@ -1,0 +1,18 @@
+{
+	"short_name": "Kael Blog",
+	"name": "Kael Odin's Blog",
+	"description": "Kael Odin 的个人博客与数字花园，记录 AI、数据与开发实践，以及一些随想。",
+	"start_url": ".",
+	"display": "standalone",
+	"background_color": "#eeeeee",
+	"theme_color": "#35bfab",
+	"lang": "zh-CN",
+	"icons": [
+		{
+			"src": "/favicon.png",
+			"sizes": "940x940",
+			"type": "image/png",
+			"purpose": "any"
+		}
+	]
+}

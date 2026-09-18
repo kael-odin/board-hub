@@ -1,0 +1,43 @@
+@theme {
+	--color-primary: #334f52;
+	--color-secondary: #7b888e;
+	--color-brand-secondary: #1fc9e7;
+	--color-bg: #eeeeee;
+	--color-border: #fff;
+	--color-brand: #35bfab;
+	--color-card: #ffffff66;
+	--color-article: #ffffffcc;
+
+	--font-averia: 'Averia Gruesa Libre', sans-serif;
+	--font-sans:
+		'PingFang SC', -apple-system, system-ui, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif, BlinkMacSystemFont, 'Helvetica Neue',
+		'Hiragino Sans GB', 'Microsoft YaHei', Arial;
+}
+
+/*
+ * 明暗双主题运行时映射：
+ * - 布局以 --lc-*（站点配置的浅色值）与 --dk-*（暗色定值）注入到 <html>
+ * - data-theme="dark" 时把语义变量 --color-* 切到暗色来源
+ * 工具类（bg-bg / text-primary / bg-card 等）只依赖 --color-*，无需感知主题。
+ */
+:root {
+	--color-primary: var(--lc-primary, #334f52);
+	--color-secondary: var(--lc-secondary, #7b888e);
+	--color-brand-secondary: var(--lc-brand-secondary, #1fc9e7);
+	--color-bg: var(--lc-bg, #eeeeee);
+	--color-border: var(--lc-border, #fff);
+	--color-brand: var(--lc-brand, #35bfab);
+	--color-card: var(--lc-card, #ffffff66);
+	--color-article: var(--lc-article, #ffffffcc);
+}
+
+html[data-theme='dark'] {
+	--color-primary: var(--dk-primary, #d8e4e5);
+	--color-secondary: var(--dk-secondary, #90a1a7);
+	--color-brand-secondary: var(--dk-brand-secondary, #1fc9e7);
+	--color-bg: var(--dk-bg, #0f1719);
+	--color-border: var(--dk-border, #2c3a3e);
+	--color-brand: var(--dk-brand, #35bfab);
+	--color-card: var(--dk-card, #ffffff14);
+	--color-article: var(--dk-article, #182426f2);
+}

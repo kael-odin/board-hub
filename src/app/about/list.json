@@ -1,0 +1,5 @@
+{
+	"title": "关于本站",
+	"description": "Kael Odin 的个人博客与项目展示",
+	"content": "👋你好，我是 Kael Odin，这里是你的个人博客。\n\n📦网站基于 GitHub 仓库完全存储，所有内容版本可控\n\n🚀点赞计数内置为 API Route，数据就存在本仓库 likes.json\n\n✏️文章通过可视化 UI 直接编辑并提交到 GitHub 仓库\n\n🔑编辑需要 Owner 的 GitHub App 私钥，访客可正常浏览与点赞\n\n## 技术栈\n\n- Next.js\n- React\n- TypeScript\n- Tailwind CSS\n- Motion\n- GitHub API"
+}
