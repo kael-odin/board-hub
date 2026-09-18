@@ -48,3 +48,6 @@ next-env.d.ts
 .history/
 # playwright-cli 截图与日志
 .playwright-cli/
+
+# 示例环境变量文件应当提交（仅含占位符，无真实密钥）
+!.env.example
