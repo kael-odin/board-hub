@@ -426,6 +426,19 @@ export default function RepoClient() {
 				<div className='flex flex-col gap-4 lg:flex-row'>
 					{/* 左侧：文件列表 */}
 					<div className='bg-card w-full shrink-0 rounded-2xl border p-4 lg:sticky lg:top-20 lg:max-h-[80vh] lg:w-[340px] lg:overflow-hidden'>
+						{/* 目录用途图例 */}
+						<div className='text-secondary mb-3 space-y-1 rounded-lg border border-dashed px-3 py-2 text-[11px] leading-relaxed opacity-80'>
+							<div>
+								<code className='text-brand'>content/boards/</code> 书架数据区（本页已隐藏，去「书架」看）
+							</div>
+							<div>
+								<code className='text-brand'>public/</code> 站点静态资源（头像、图标、音乐）
+							</div>
+							<div>
+								<code className='text-brand'>src/config/</code> 站点配置 JSON（外观与首页布局）
+							</div>
+							<div>其余目录为程序代码，只读浏览即可，改动会触发重新部署</div>
+						</div>
 						<input
 							type='text'
 							placeholder='搜索文件路径…'

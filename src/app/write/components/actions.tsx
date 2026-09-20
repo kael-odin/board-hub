@@ -58,7 +58,7 @@ export function WriteActions() {
 	// 查看者 / 未登录：进入 /write 本身已由页面重定向拦下，这里兜底只读提示
 	if (hydrated && !isAdmin) {
 		return (
-			<ul className='absolute top-3 right-3 left-3 flex flex-wrap items-center justify-end gap-2 sm:top-4 sm:right-6 sm:left-auto'>
+			<ul className='absolute top-16 right-3 left-3 z-20 flex flex-wrap items-center justify-end gap-2 sm:right-6 sm:left-auto'>
 				<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className='rounded-lg border bg-blue-50 dark:bg-blue-500/15 px-4 py-2 text-sm text-blue-700'>
 					查看者账号只能浏览与下载
 				</motion.div>
@@ -70,7 +70,7 @@ export function WriteActions() {
 		<>
 			<input ref={htmlInputRef} type='file' accept='.html,.htm,.md,.markdown' className='hidden' onChange={handleTextFileChange} />
 
-			<ul className='absolute top-3 right-3 left-3 flex flex-wrap items-center justify-end gap-2 sm:top-4 sm:right-6 sm:left-auto'>
+			<ul className='absolute top-16 right-3 left-3 flex flex-wrap items-center justify-end gap-2 sm:right-6 sm:left-auto'>
 				{mode === 'edit' && (
 					<>
 						<motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} className='flex items-center gap-2'>

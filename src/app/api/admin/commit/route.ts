@@ -15,11 +15,10 @@ export const dynamic = 'force-dynamic'
  *   content/boards/**  看板内容（鉴权出库的那部分）
  *   public/**          站点静态资源（favicon、头像、音乐等，非敏感）
  *   src/config/**      站点配置 JSON
- *   likes.json         点赞计数
  */
 
 const ALLOWED_PREFIXES = ['content/boards/', 'public/', 'src/config/']
-const ALLOWED_EXACT = ['likes.json']
+const ALLOWED_EXACT: string[] = []
 /** 单次提交的总体积护栏（Vercel 函数请求体上限约 4.5MB，留余量） */
 const MAX_TOTAL_BYTES = 4 * 1024 * 1024
 

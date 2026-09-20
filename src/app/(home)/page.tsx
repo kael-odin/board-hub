@@ -8,7 +8,6 @@ import { useEffect } from 'react'
 import { INIT_DELAY } from '@/consts'
 import { useSize } from '@/hooks/use-size'
 import { useConfigStore } from './stores/config-store'
-import ConfigDialog from './config-dialog/index'
 import SnowfallBackground from '@/layout/backgrounds/snowfall'
 import { BoardWall } from '@/components/board-wall'
 
@@ -18,7 +17,8 @@ import { BoardWall } from '@/components/board-wall'
  */
 export default function Home() {
 	const { maxSM } = useSize()
-	const { configDialogOpen, setConfigDialogOpen, siteContent } = useConfigStore()
+	const { setConfigDialogOpen, siteContent } = useConfigStore()
+	const shelf = siteContent.shelf
 
 	// Ctrl/Cmd + L 或 , 打开站点配置
 	useEffect(() => {
@@ -36,7 +36,7 @@ export default function Home() {
 		<>
 			{siteContent.enableChristmas && <SnowfallBackground zIndex={0} count={!maxSM ? 125 : 20} />}
 
-			<div className='mx-auto w-full max-w-7xl px-6 pt-28 pb-16'>
+			<div className='mx-auto w-full px-6 pt-24 pb-16' style={{ maxWidth: shelf?.contentWidth || 1280 }}>
 				{/* 站点标识 */}
 				<motion.header
 					initial={{ opacity: 0, y: 12 }}
@@ -63,7 +63,6 @@ export default function Home() {
 			</div>
 
 			{siteContent.enableChristmas && <SnowfallBackground zIndex={2} count={!maxSM ? 125 : 20} />}
-			<ConfigDialog open={configDialogOpen} onClose={() => setConfigDialogOpen(false)} />
 		</>
 	)
 }

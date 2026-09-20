@@ -7,23 +7,36 @@ import { INIT_DELAY } from '@/consts'
 import { useAuthStore } from '@/hooks/use-auth'
 import { useBoardIndex } from '@/hooks/use-board-index'
 import { BoardCard } from '@/app/boards/components/board-card'
+import { BOARD_TYPES, BOARD_TYPE_LABELS, normalizeBoardType, type BoardType } from '@/app/boards/types'
+import { useConfigStore } from '@/app/(home)/stores/config-store'
 
 type BoardWallProps = {
 	/** 首页带一个大标题头部；/boards 页头部更紧凑 */
 	showHero?: boolean
 }
 
+/** 固定列数时各档位的响应式类（保持窄屏始终单列） */
+const FIXED_COLS_CLASS: Record<number, string> = {
+	2: 'grid-cols-1 sm:grid-cols-2',
+	3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+}
+
 /**
  * 看板卡片墙 —— 首页和 /boards 共用的主体。
  * 卡片的缩略图在悬停时会按真实比例渲染看板本身，所以这一屏看起来就是一堆真的看板。
+ *
+ * 筛选分两层：主筛是「类型」（系统字段，稳定可靠），
+ * 标签是发布时随手打的自由标记，只作为第二行的补充筛选项。
  */
 export function BoardWall({ showHero = false }: BoardWallProps) {
 	const router = useRouter()
 	const { items, loading, error } = useBoardIndex()
 	const { role, hydrated } = useAuthStore()
 	const isAdmin = role === 'admin'
+	const shelf = useConfigStore(state => state.siteContent.shelf)
 
 	const [searchTerm, setSearchTerm] = useState('')
+	const [selectedType, setSelectedType] = useState<BoardType | 'all'>('all')
 	const [selectedTag, setSelectedTag] = useState<string>('all')
 
 	const allTags = useMemo(() => Array.from(new Set(items.flatMap(item => item.tags || []))), [items])
@@ -33,10 +46,19 @@ export function BoardWall({ showHero = false }: BoardWallProps) {
 		return items.filter(item => {
 			const matchesSearch =
 				!kw || (item.title || '').toLowerCase().includes(kw) || (item.summary || '').toLowerCase().includes(kw) || item.slug.toLowerCase().includes(kw)
+			const matchesType = selectedType === 'all' || normalizeBoardType(item.type) === selectedType
 			const matchesTag = selectedTag === 'all' || (item.tags || []).includes(selectedTag)
-			return matchesSearch && matchesTag
+			return matchesSearch && matchesType && matchesTag
 		})
-	}, [items, searchTerm, selectedTag])
+	}, [items, searchTerm, selectedType, selectedTag])
+
+	const typeChips: Array<{ key: BoardType | 'all'; label: string; count: number }> = useMemo(() => {
+		const count = (t: BoardType | 'all') => (t === 'all' ? items.length : items.filter(item => normalizeBoardType(item.type) === t).length)
+		return [{ key: 'all', label: '全部', count: count('all') }, ...BOARD_TYPES.map(t => ({ key: t, label: BOARD_TYPE_LABELS[t], count: count(t) }))]
+	}, [items])
+
+	const colsClass = FIXED_COLS_CLASS[shelf?.columns || 0] || 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+	const gridGap = shelf?.compact ? 'gap-5' : 'gap-8'
 
 	return (
 		<>
@@ -47,28 +69,46 @@ export function BoardWall({ showHero = false }: BoardWallProps) {
 				</motion.div>
 			)}
 
-			{/* 搜索 + 标签筛选（未登录无需展示） */}
+			{/* 搜索 + 筛选（未登录无需展示） */}
 			<div className={`mb-8 space-y-4 ${role ? '' : 'hidden'}`}>
 				<input
 					type='text'
-					placeholder='搜索看板…'
+					placeholder='搜索看板标题、摘要、slug…'
 					value={searchTerm}
 					onChange={e => setSearchTerm(e.target.value)}
 					className='focus:ring-brand mx-auto block w-full max-w-md rounded-lg border px-4 py-2 text-sm focus:ring-2 focus:outline-none'
 				/>
 
+				{/* 主筛：内容类型 */}
+				<div className='flex flex-wrap items-center justify-center gap-2'>
+					{typeChips.map(chip => {
+						const active = selectedType === chip.key
+						return (
+							<button
+								key={chip.key}
+								onClick={() => setSelectedType(chip.key)}
+								className={`rounded-full px-4 py-1.5 text-sm transition-colors ${active ? 'bg-brand text-white' : 'bg-secondary/10 hover:bg-secondary/20'}`}>
+								{chip.label}
+								<span className={`ml-1.5 text-[11px] ${active ? 'text-white/75' : 'text-secondary opacity-60'}`}>{chip.count}</span>
+							</button>
+						)
+					})}
+				</div>
+
+				{/* 副筛：自由标签（发布时随手打的，只在此展示） */}
 				{allTags.length > 0 && (
-					<div className='flex flex-wrap justify-center gap-2'>
+					<div className='flex flex-wrap items-center justify-center gap-1.5'>
+						<span className='text-secondary mr-1 text-[11px] opacity-60'>标签</span>
 						<button
 							onClick={() => setSelectedTag('all')}
-							className={`rounded-full px-4 py-1.5 text-sm transition-colors ${selectedTag === 'all' ? 'bg-brand text-white' : 'bg-secondary/10 hover:bg-secondary/20'}`}>
-							全部
+							className={`rounded-full px-2.5 py-1 text-[11px] transition-colors ${selectedTag === 'all' ? 'bg-brand text-white' : 'bg-secondary/10 hover:bg-secondary/20'}`}>
+							不限
 						</button>
 						{allTags.map(tag => (
 							<button
 								key={tag}
 								onClick={() => setSelectedTag(tag)}
-								className={`rounded-full px-4 py-1.5 text-sm transition-colors ${selectedTag === tag ? 'bg-brand text-white' : 'bg-secondary/10 hover:bg-secondary/20'}`}>
+								className={`rounded-full px-2.5 py-1 text-[11px] transition-colors ${selectedTag === tag ? 'bg-brand text-white' : 'bg-secondary/10 hover:bg-secondary/20'}`}>
 								{tag}
 							</button>
 						))}
@@ -113,7 +153,7 @@ export function BoardWall({ showHero = false }: BoardWallProps) {
 					)}
 				</div>
 			) : (
-				<div className='grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3'>
+				<div className={`grid ${colsClass} ${gridGap}`}>
 					{filtered.map((item, i) => (
 						<BoardCard key={item.slug} item={item} index={i} onEdit={isAdmin ? () => router.push(`/write?slug=${item.slug}`) : undefined} />
 					))}

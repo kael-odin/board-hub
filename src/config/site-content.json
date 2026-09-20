@@ -83,5 +83,10 @@
 			"category": "Announcements",
 			"categoryId": ""
 		}
+	},
+	"shelf": {
+		"contentWidth": 1280,
+		"columns": 0,
+		"compact": false
 	}
 }

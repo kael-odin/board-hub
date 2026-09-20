@@ -2,13 +2,12 @@
 import { PropsWithChildren } from 'react'
 import { useCenterInit } from '@/hooks/use-center'
 import BlurredBubblesBackground from './backgrounds/blurred-bubbles'
-import NavCard from '@/components/nav-card'
+import { SiteHeader } from '@/components/site-header'
 import { Toaster } from 'sonner'
 import { CircleCheckIcon, InfoIcon, Loader2Icon, OctagonXIcon, TriangleAlertIcon } from 'lucide-react'
 import { useSize, useSizeInit } from '@/hooks/use-size'
 import { useConfigStore } from '@/app/(home)/stores/config-store'
 import { ScrollTopButton } from '@/components/scroll-top-button'
-import ThemeToggle from '@/components/theme-toggle'
 
 export default function Layout({ children }: PropsWithChildren) {
 	useCenterInit()
@@ -52,13 +51,11 @@ export default function Layout({ children }: PropsWithChildren) {
 			)}
 			<BlurredBubblesBackground colors={siteContent.backgroundColors} regenerateKey={regenerateKey} />
 
+			<SiteHeader />
+
 			<main className='relative z-10 h-full'>
 				{children}
-				<NavCard />
-
 			</main>
-
-			<ThemeToggle />
 
 			{maxSM && init && <ScrollTopButton className='bg-brand/20 fixed right-6 bottom-8 z-50 shadow-md' />}
 		</>

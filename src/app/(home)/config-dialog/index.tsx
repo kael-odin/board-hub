@@ -10,13 +10,14 @@ import { pushSiteContent } from '../services/push-site-content'
 import type { SiteContent, CardStyles } from '../stores/config-store'
 import { SiteSettings, type FileItem, type ArtImageUploads, type BackgroundImageUploads, type SocialButtonImageUploads } from './site-settings'
 import { ColorConfig } from './color-config'
+import { ShelfAppearance } from './shelf-appearance'
 
 interface ConfigDialogProps {
 	open: boolean
 	onClose: () => void
 }
 
-type TabType = 'site' | 'color'
+type TabType = 'site' | 'color' | 'shelf'
 
 export default function ConfigDialog({ open, onClose }: ConfigDialogProps) {
 	const isAdmin = useAuthStore(state => state.role === 'admin')
@@ -211,7 +212,8 @@ export default function ConfigDialog({ open, onClose }: ConfigDialogProps) {
 
 	const tabs: { id: TabType; label: string }[] = [
 		{ id: 'site', label: '网站设置' },
-		{ id: 'color', label: '色彩配置' }
+		{ id: 'color', label: '色彩配置' },
+		{ id: 'shelf', label: '书架外观' }
 	]
 
 	return (
@@ -271,6 +273,7 @@ export default function ConfigDialog({ open, onClose }: ConfigDialogProps) {
 						/>
 					)}
 					{activeTab === 'color' && <ColorConfig formData={formData} setFormData={setFormData} />}
+					{activeTab === 'shelf' && <ShelfAppearance formData={formData} setFormData={setFormData} />}
 				</div>
 			</DialogModal>
 		</>
