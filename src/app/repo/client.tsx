@@ -10,6 +10,7 @@ import { markdown as markdownLang } from '@codemirror/lang-markdown'
 import { EditorView } from '@codemirror/view'
 import { useAuthStore } from '@/hooks/use-auth'
 import { GITHUB_CONFIG } from '@/consts'
+import { commitToRepo } from '@/lib/board-api'
 import { suggestSlug } from '@/lib/slug'
 import { fromBase64Utf8, fromBase64Bytes } from '@/lib/file-utils'
 import { BoardFrame } from '@/components/board-frame'
@@ -45,10 +46,13 @@ const EXT_KIND: Array<[RegExp, FileKind]> = [
 	[/\.(txt|log|ya?ml|toml|css|js|ts|tsx|jsx)$/i, 'text']
 ]
 
-/** 目录前缀不进列表：构建产物、依赖、配置目录 */
-const EXCLUDED_PREFIXES = ['.github/', '.next/', '.vscode/', 'node_modules/', 'out/']
-
-/** 书架区（content/boards/）由看板页管理，这里不重复展示 */
+/**
+ * 用户内容区白名单：仓库浏览只服务于「放文件 / 收文件 / 管文件」，
+ * 程序代码（src/ 等）不在展示范围 —— 想看代码请用 GitHub。
+ *   content/   内容区（boards/ 书架本体除外，那由书架页管理）
+ *   public/    站点静态资源（头像、图标、背景图）
+ */
+const VISIBLE_PREFIXES = ['content/', 'public/']
 const SHELF_PREFIX = 'content/boards/'
 
 function classify(path: string): FileKind {
@@ -177,7 +181,12 @@ export default function RepoClient() {
 			const data = await res.json().catch(() => ({}))
 			if (!res.ok) throw new Error(data.error || `加载失败（${res.status}）`)
 			const visible = (data as Array<{ path: string; size?: number }>)
-				.filter(item => !item.path.includes('/.') && !item.path.startsWith('.') && !EXCLUDED_PREFIXES.some(p => item.path.startsWith(p)) && !item.path.startsWith(SHELF_PREFIX))
+				.filter(item => {
+					if (item.path.includes('/.') || item.path.startsWith('.')) return false
+					if (!VISIBLE_PREFIXES.some(p => item.path.startsWith(p))) return false
+					if (item.path.startsWith(SHELF_PREFIX)) return false
+					return true
+				})
 				.sort((a, b) => a.path.localeCompare(b.path))
 			setEntries(visible)
 		} catch (err: any) {
@@ -350,6 +359,21 @@ export default function RepoClient() {
 		}
 	}
 
+	/** 删除仓库里的单个文件（收编完原文件不再需要时用） */
+	const deleteSelected = async () => {
+		if (!selected) return
+		if (!window.confirm(`确定从仓库删除 ${selected.path} 吗？该操作不可恢复。`)) return
+		try {
+			await commitToRepo({ message: `删除 ${selected.path}`, deletions: [selected.path] })
+			toast.success('已删除', { description: '部署完成后仓库里就不存在这个文件了' })
+			setSelected(null)
+			setPreview(null)
+			loadTree()
+		} catch (err: any) {
+			toast.error(err?.message || '删除失败')
+		}
+	}
+
 	const downloadSelected = async () => {
 		if (!selected) return
 		try {
@@ -410,7 +434,7 @@ export default function RepoClient() {
 					<button onClick={loadTree} className='bg-card rounded-lg border px-3 py-1.5 text-xs transition-colors hover:bg-bg'>
 						刷新
 					</button>
-					<button onClick={() => window.open(`https://github.com/${GITHUB_CONFIG.OWNER}/${GITHUB_CONFIG.REPO}/tree/${GITHUB_CONFIG.BRANCH}`, '_blank')} className='bg-card rounded-lg border px-3 py-1.5 text-xs transition-colors hover:bg-bg'>
+					<button onClick={() => window.open(`https://github.com/${GITHUB_CONFIG.OWNER}/${GITHUB_CONFIG.REPO}/tree/${GITHUB_CONFIG.BRANCH}/content`, '_blank')} className='bg-card rounded-lg border px-3 py-1.5 text-xs transition-colors hover:bg-bg'>
 						在 GitHub 打开
 					</button>
 				</div>
@@ -429,15 +453,14 @@ export default function RepoClient() {
 						{/* 目录用途图例 */}
 						<div className='text-secondary mb-3 space-y-1 rounded-lg border border-dashed px-3 py-2 text-[11px] leading-relaxed opacity-80'>
 							<div>
-								<code className='text-brand'>content/boards/</code> 书架数据区（本页已隐藏，去「书架」看）
+								<code className='text-brand'>content/</code> 内容区 —— 想上架的 html / md / 表格放这里，选中等可「收进书架」
 							</div>
 							<div>
-								<code className='text-brand'>public/</code> 站点静态资源（头像、图标、音乐）
+								<code className='text-brand'>public/</code> 站点资源 —— 头像、图标、背景图等
 							</div>
 							<div>
-								<code className='text-brand'>src/config/</code> 站点配置 JSON（外观与首页布局）
+								<code className='text-brand'>content/boards/</code> 书架本体（由书架页管理，此处不显示）；程序代码不在本页范围
 							</div>
-							<div>其余目录为程序代码，只读浏览即可，改动会触发重新部署</div>
 						</div>
 						<input
 							type='text'
@@ -519,14 +542,20 @@ export default function RepoClient() {
 										</>
 									)}
 
-									{!editing && ['markdown', 'html', 'sheet'].includes(classify(selected.path)) && (
-										<button onClick={openAdopt} className='bg-card rounded-lg border px-3 py-1.5 text-xs transition-colors hover:bg-bg'>
-											收进书架
-										</button>
-									)}
-									<button onClick={downloadSelected} className='bg-card rounded-lg border px-3 py-1.5 text-xs transition-colors hover:bg-bg'>
-										下载
+								{!editing && ['markdown', 'html', 'sheet'].includes(classify(selected.path)) && (
+									<button onClick={openAdopt} className='bg-card rounded-lg border px-3 py-1.5 text-xs transition-colors hover:bg-bg'>
+										收进书架
 									</button>
+								)}
+								<button onClick={downloadSelected} className='bg-card rounded-lg border px-3 py-1.5 text-xs transition-colors hover:bg-bg'>
+									下载
+								</button>
+								<button
+									onClick={deleteSelected}
+									title='从仓库删除这个文件'
+									className='rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-600 transition-colors hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20'>
+									删除
+								</button>
 								</div>
 
 								{/* 预览本体 */}

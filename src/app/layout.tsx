@@ -12,7 +12,7 @@ const {
 } = siteContent
 
 export const metadata: Metadata = {
-	metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://kael-odin-blog.vercel.app'),
+	metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://board-hub-nine.vercel.app'),
 	title,
 	description,
 	openGraph: {

@@ -12,12 +12,12 @@ export const dynamic = 'force-dynamic'
  *   body: { message, files: [{ path, base64 }], deletions?: [path] }
  *
  * 路径白名单 —— 只允许碰内容与站点资源目录，防止改到应用代码本身：
- *   content/boards/**  看板内容（鉴权出库的那部分）
+ *   content/**         看板书架 + 内容区（待收编文件等）
  *   public/**          站点静态资源（favicon、头像、音乐等，非敏感）
  *   src/config/**      站点配置 JSON
  */
 
-const ALLOWED_PREFIXES = ['content/boards/', 'public/', 'src/config/']
+const ALLOWED_PREFIXES = ['content/', 'public/', 'src/config/']
 const ALLOWED_EXACT: string[] = []
 /** 单次提交的总体积护栏（Vercel 函数请求体上限约 4.5MB，留余量） */
 const MAX_TOTAL_BYTES = 4 * 1024 * 1024

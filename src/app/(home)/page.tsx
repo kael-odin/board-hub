@@ -8,7 +8,6 @@ import { useEffect } from 'react'
 import { INIT_DELAY } from '@/consts'
 import { useSize } from '@/hooks/use-size'
 import { useConfigStore } from './stores/config-store'
-import SnowfallBackground from '@/layout/backgrounds/snowfall'
 import { BoardWall } from '@/components/board-wall'
 
 /**
@@ -16,7 +15,6 @@ import { BoardWall } from '@/components/board-wall'
  * 装饰性资源（背景动效、明暗主题、光标、NavCard、音乐卡片）由根 layout 提供，这里不用重复。
  */
 export default function Home() {
-	const { maxSM } = useSize()
 	const { setConfigDialogOpen, siteContent } = useConfigStore()
 	const shelf = siteContent.shelf
 
@@ -34,8 +32,6 @@ export default function Home() {
 
 	return (
 		<>
-			{siteContent.enableChristmas && <SnowfallBackground zIndex={0} count={!maxSM ? 125 : 20} />}
-
 			<div className='mx-auto w-full px-6 pt-24 pb-16' style={{ maxWidth: shelf?.contentWidth || 1280 }}>
 				{/* 站点标识 */}
 				<motion.header
@@ -62,7 +58,6 @@ export default function Home() {
 				<BoardWall />
 			</div>
 
-			{siteContent.enableChristmas && <SnowfallBackground zIndex={2} count={!maxSM ? 125 : 20} />}
 		</>
 	)
 }

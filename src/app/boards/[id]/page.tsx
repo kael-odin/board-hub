@@ -4,7 +4,7 @@ import path from 'node:path'
 import BoardView from './board-view'
 import { getRole } from '@/lib/server/session'
 
-const SITE_ORIGIN = process.env.NEXT_PUBLIC_SITE_URL || 'https://board-hub.vercel.app'
+const SITE_ORIGIN = process.env.NEXT_PUBLIC_SITE_URL || 'https://board-hub-nine.vercel.app'
 
 type BoardMetaConfig = {
 	title?: string

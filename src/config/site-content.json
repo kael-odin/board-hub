@@ -1,8 +1,7 @@
 {
 	"meta": {
 		"title": "Board Hub",
-		"description": "看板与报表展示中心 · 由 AI 从表格生成",
-		"username": "Kael Odin"
+		"description": "看板与报表展示中心 · 由 AI 从表格生成"
 	},
 	"theme": {
 		"colorBrand": "#35bfab",
@@ -22,17 +21,6 @@
 		"#88E6E5",
 		"#a7f3d0"
 	],
-	"artImages": [
-		{
-			"id": "cat",
-			"url": "/images/art/cat.png"
-		},
-		{
-			"id": "a46372ff45bc5524",
-			"url": "/images/art/a46372ff45bc5524.jpg"
-		}
-	],
-	"currentArtImageId": "cat",
 	"backgroundImages": [
 		{
 			"id": "",
@@ -40,50 +28,7 @@
 		}
 	],
 	"currentBackgroundImageId": "",
-	"socialButtons": [
-		{
-			"id": "github",
-			"type": "github",
-			"value": "https://github.com/kael-odin",
-			"label": "GitHub",
-			"order": 1
-		},
-		{
-			"id": "button-1772591162791",
-			"type": "qq",
-			"value": "445481611",
-			"label": "",
-			"order": 2
-		},
-		{
-			"id": "email",
-			"type": "email",
-			"value": "t445481611@gmail.com",
-			"label": "",
-			"order": 3
-		}
-	],
-	"clockShowSeconds": false,
-	"summaryInContent": false,
-	"isCachePem": false,
-	"hideEditButton": false,
 	"enableCategories": true,
-	"currentHatIndex": 3,
-	"hatFlipped": false,
-	"enableChristmas": false,
-	"beian": {
-		"text": "",
-		"link": ""
-	},
-	"comments": {
-		"giscus": {
-			"enabled": false,
-			"repo": "",
-			"repoId": "",
-			"category": "Announcements",
-			"categoryId": ""
-		}
-	},
 	"shelf": {
 		"contentWidth": 1280,
 		"columns": 0,
