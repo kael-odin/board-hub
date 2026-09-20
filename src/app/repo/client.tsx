@@ -394,7 +394,7 @@ export default function RepoClient() {
 	if (hydrated && !role) {
 		return (
 			<div className='mx-auto w-full max-w-7xl px-6 pt-28 pb-16'>
-				<div className='bg-card mx-auto max-w-md rounded-3xl border p-8 text-center shadow'>
+				<div className='bg-card mx-auto max-w-md rounded-xl border p-8 text-center shadow'>
 					<h1 className='text-lg font-medium'>仓库浏览</h1>
 					<p className='text-secondary mt-2 text-sm'>这是管理员功能，请先登录。</p>
 					<Link href='/login?next=/repo' className='brand-btn mx-auto mt-5 inline-block'>
@@ -407,7 +407,7 @@ export default function RepoClient() {
 	if (hydrated && role === 'viewer') {
 		return (
 			<div className='mx-auto w-full max-w-7xl px-6 pt-28 pb-16'>
-				<div className='bg-card mx-auto max-w-md rounded-3xl border p-8 text-center shadow'>
+				<div className='bg-card mx-auto max-w-md rounded-xl border p-8 text-center shadow'>
 					<h1 className='text-lg font-medium'>仓库浏览</h1>
 					<p className='text-secondary mt-2 text-sm'>查看者账号没有这个权限，请联系管理员。</p>
 					<Link href='/boards' className='text-secondary mx-auto mt-4 block text-xs transition-colors hover:text-brand'>
@@ -441,7 +441,7 @@ export default function RepoClient() {
 			</div>
 
 			{loadError && (
-				<div className='rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400'>{loadError}</div>
+				<div className='rounded-lg border border-red-200 bg-red-50 p-6 text-center text-sm text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400'>{loadError}</div>
 			)}
 
 			{!entries && !loadError && <div className='text-secondary py-20 text-center text-sm'>正在加载仓库文件树…</div>}
@@ -449,7 +449,7 @@ export default function RepoClient() {
 			{entries && (
 				<div className='flex flex-col gap-4 lg:flex-row'>
 					{/* 左侧：文件列表 */}
-					<div className='bg-card w-full shrink-0 rounded-2xl border p-4 lg:sticky lg:top-20 lg:max-h-[80vh] lg:w-[340px] lg:overflow-hidden'>
+					<div className='bg-card w-full shrink-0 rounded-lg border p-4 lg:sticky lg:top-20 lg:max-h-[80vh] lg:w-[340px] lg:overflow-hidden'>
 						{/* 目录用途图例 */}
 						<div className='text-secondary mb-3 space-y-1 rounded-lg border border-dashed px-3 py-2 text-[11px] leading-relaxed opacity-80'>
 							<div>
@@ -512,7 +512,7 @@ export default function RepoClient() {
 					{/* 右侧：预览/编辑区 */}
 					<div className='flex min-h-[60vh] min-w-0 flex-1 flex-col'>
 						{!selected && (
-							<div className='text-secondary bg-card flex flex-1 items-center justify-center rounded-2xl border text-sm'>
+							<div className='text-secondary bg-card flex flex-1 items-center justify-center rounded-lg border text-sm'>
 								{entries.length === 0 ? '仓库里（书架区之外）没有可展示的文件' : '从左侧选一个文件查看'}
 							</div>
 						)}
@@ -520,7 +520,7 @@ export default function RepoClient() {
 						{selected && (
 							<>
 								{/* 操作条 */}
-								<div className='bg-card mb-3 flex flex-wrap items-center gap-2 rounded-2xl border px-4 py-2.5'>
+								<div className='bg-card mb-3 flex flex-wrap items-center gap-2 rounded-lg border px-4 py-2.5'>
 									<span className='min-w-0 flex-1 truncate font-mono text-xs' title={selected.path}>
 										{selected.path}
 									</span>
@@ -559,7 +559,7 @@ export default function RepoClient() {
 								</div>
 
 								{/* 预览本体 */}
-								<div className='bg-card min-h-0 flex-1 overflow-hidden rounded-2xl border'>
+								<div className='bg-card min-h-0 flex-1 overflow-hidden rounded-lg border'>
 									{editing ? (
 										<CodeMirror
 											value={editText}
@@ -585,7 +585,7 @@ export default function RepoClient() {
 			{/* 收进书架对话框 */}
 			{adoptOpen && (
 				<div className='fixed inset-0 z-50 grid place-items-center bg-black/40 px-4' onClick={() => !adopting && setAdoptOpen(false)}>
-					<div className='bg-card w-full max-w-md rounded-2xl border p-6 shadow-xl' onClick={e => e.stopPropagation()}>
+					<div className='bg-card w-full max-w-md rounded-lg border p-6 shadow-xl' onClick={e => e.stopPropagation()}>
 						<h3 className='text-sm font-medium'>收进书架</h3>
 						<p className='text-secondary mt-1 text-xs'>把 {selected?.path.split('/').pop()} 变成一个看板发布到书架上。</p>
 						<div className='mt-4 space-y-3'>

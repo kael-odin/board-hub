@@ -63,7 +63,7 @@ function BoardThumb({ item }: { item: BoardIndexItem }) {
 	}, [type, hovered, html, staticImage, item.slug])
 
 	return (
-		<div ref={boxRef} onMouseEnter={() => setHovered(true)} className='relative aspect-[16/10] w-full overflow-hidden border-b bg-neutral-100 dark:bg-neutral-800'>
+		<div ref={boxRef} onMouseEnter={() => setHovered(true)} className='relative aspect-[16/10] w-full overflow-hidden border-b bg-secondary/5'>
 			{staticImage ? (
 				<img src={staticImage} alt={item.title} className='h-full w-full object-cover' />
 			) : html ? (

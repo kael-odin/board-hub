@@ -170,7 +170,7 @@ export function WriteEditor() {
 			initial={{ opacity: 0, scale: 0.8 }}
 			animate={{ opacity: 1, scale: 1 }}
 			transition={{ delay: INIT_DELAY }}
-			className='bg-card flex min-h-[60vh] w-full flex-col rounded-[40px] border p-4 shadow sm:p-6 lg:min-h-[800px] lg:w-[800px]'>
+			className='bg-card flex min-h-[60vh] w-full flex-col rounded-xl border p-4 shadow sm:p-6 lg:min-h-[800px] lg:w-[800px]'>
 			{/* 标题 + slug */}
 			<div className='mb-3 flex gap-3'>
 				<input

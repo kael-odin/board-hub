@@ -27,18 +27,17 @@ export const metadata: Metadata = {
 
 // 暗色定值调色板：保持品牌青绿不变，翻转中性色（对应 theme.css 的 --dk-*）
 const darkPalette = {
-	'--dk-primary': '#d8e4e5',
-	'--dk-secondary': '#90a1a7',
-	'--dk-brand-secondary': '#1fc9e7',
-	'--dk-bg': '#0f1719',
-	'--dk-border': '#2c3a3e',
-	'--dk-brand': '#35bfab',
-	'--dk-card': '#ffffff14',
-	'--dk-article': '#182426f2'
+	'--dk-primary': '#e5e7eb',
+	'--dk-secondary': '#9ca3af',
+	'--dk-brand-secondary': '#38bdf8',
+	'--dk-bg': '#111418',
+	'--dk-border': '#262b33',
+	'--dk-brand': '#3b82f6',
+	'--dk-card': '#1a1f26',
+	'--dk-article': '#1a1f26'
 }
 
 const htmlStyle: React.CSSProperties = {
-	cursor: 'url(/images/cursor.svg) 2 1, auto',
 	'--lc-brand': theme.colorBrand,
 	'--lc-primary': theme.colorPrimary,
 	'--lc-secondary': theme.colorSecondary,

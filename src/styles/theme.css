@@ -1,12 +1,12 @@
 @theme {
-	--color-primary: #334f52;
-	--color-secondary: #7b888e;
-	--color-brand-secondary: #1fc9e7;
-	--color-bg: #eeeeee;
-	--color-border: #fff;
-	--color-brand: #35bfab;
-	--color-card: #ffffff66;
-	--color-article: #ffffffcc;
+	--color-primary: #111827;
+	--color-secondary: #6b7280;
+	--color-brand-secondary: #0ea5e9;
+	--color-bg: #f4f5f7;
+	--color-border: #e5e7eb;
+	--color-brand: #2563eb;
+	--color-card: #ffffff;
+	--color-article: #ffffff;
 
 	--font-averia: 'Averia Gruesa Libre', sans-serif;
 	--font-sans:
@@ -21,23 +21,23 @@
  * 工具类（bg-bg / text-primary / bg-card 等）只依赖 --color-*，无需感知主题。
  */
 :root {
-	--color-primary: var(--lc-primary, #334f52);
-	--color-secondary: var(--lc-secondary, #7b888e);
-	--color-brand-secondary: var(--lc-brand-secondary, #1fc9e7);
-	--color-bg: var(--lc-bg, #eeeeee);
-	--color-border: var(--lc-border, #fff);
-	--color-brand: var(--lc-brand, #35bfab);
-	--color-card: var(--lc-card, #ffffff66);
-	--color-article: var(--lc-article, #ffffffcc);
+	--color-primary: var(--lc-primary, #111827);
+	--color-secondary: var(--lc-secondary, #6b7280);
+	--color-brand-secondary: var(--lc-brand-secondary, #0ea5e9);
+	--color-bg: var(--lc-bg, #f4f5f7);
+	--color-border: var(--lc-border, #e5e7eb);
+	--color-brand: var(--lc-brand, #2563eb);
+	--color-card: var(--lc-card, #ffffff);
+	--color-article: var(--lc-article, #ffffff);
 }
 
 html[data-theme='dark'] {
-	--color-primary: var(--dk-primary, #d8e4e5);
-	--color-secondary: var(--dk-secondary, #90a1a7);
-	--color-brand-secondary: var(--dk-brand-secondary, #1fc9e7);
-	--color-bg: var(--dk-bg, #0f1719);
-	--color-border: var(--dk-border, #2c3a3e);
-	--color-brand: var(--dk-brand, #35bfab);
-	--color-card: var(--dk-card, #ffffff14);
-	--color-article: var(--dk-article, #182426f2);
+	--color-primary: var(--dk-primary, #e5e7eb);
+	--color-secondary: var(--dk-secondary, #9ca3af);
+	--color-brand-secondary: var(--dk-brand-secondary, #38bdf8);
+	--color-bg: var(--dk-bg, #111418);
+	--color-border: var(--dk-border, #262b33);
+	--color-brand: var(--dk-brand, #3b82f6);
+	--color-card: var(--dk-card, #1a1f26);
+	--color-article: var(--dk-article, #1a1f26);
 }

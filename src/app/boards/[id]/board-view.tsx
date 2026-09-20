@@ -160,7 +160,7 @@ export default function BoardView({ slug }: { slug: string }) {
 			)}
 
 			{/* 正文：占满剩余高度 */}
-			<div className={`min-h-0 flex-1 overflow-hidden ${fullscreen ? '' : bare ? '' : 'rounded-2xl border bg-white shadow'}`}>
+			<div className={`min-h-0 flex-1 overflow-hidden ${fullscreen ? '' : bare ? '' : 'rounded-lg border bg-white shadow'}`}>
 				<BoardBody type={type} content={board.text} snapshot={board.snapshot} images={board.images} title={title} readOnly />
 			</div>
 		</div>

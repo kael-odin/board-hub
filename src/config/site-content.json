@@ -4,23 +4,16 @@
 		"description": "看板与报表展示中心 · 由 AI 从表格生成"
 	},
 	"theme": {
-		"colorBrand": "#35bfab",
-		"colorPrimary": "#334f52",
-		"colorSecondary": "#7b888e",
-		"colorBrandSecondary": "#1fc9e7",
-		"colorBg": "#eeeeee",
-		"colorBorder": "#ffffff",
-		"colorCard": "#ffffff66",
-		"colorArticle": "#ffffffcc"
+		"colorBrand": "#2563eb",
+		"colorBrandSecondary": "#0ea5e9",
+		"colorPrimary": "#111827",
+		"colorSecondary": "#6b7280",
+		"colorBg": "#f4f5f7",
+		"colorBorder": "#e5e7eb",
+		"colorCard": "#ffffff",
+		"colorArticle": "#ffffff"
 	},
-	"backgroundColors": [
-		"#EDDD62",
-		"#9EE7D1",
-		"#84D68A",
-		"#EDDD62",
-		"#88E6E5",
-		"#a7f3d0"
-	],
+	"backgroundColors": [],
 	"backgroundImages": [
 		{
 			"id": "",

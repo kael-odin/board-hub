@@ -2,13 +2,16 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { motion } from 'motion/react'
+import dayjs from 'dayjs'
 import { INIT_DELAY } from '@/consts'
 import { useAuthStore } from '@/hooks/use-auth'
 import { useBoardIndex } from '@/hooks/use-board-index'
 import { BoardCard } from '@/app/boards/components/board-card'
 import { BOARD_TYPES, BOARD_TYPE_LABELS, normalizeBoardType, type BoardType } from '@/app/boards/types'
 import { useConfigStore } from '@/app/(home)/stores/config-store'
+import { LayoutGrid, List } from 'lucide-react'
 
 type BoardWallProps = {
 	/** 首页带一个大标题头部；/boards 页头部更紧凑 */
@@ -27,6 +30,7 @@ const FIXED_COLS_CLASS: Record<number, string> = {
  *
  * 筛选分两层：主筛是「类型」（系统字段，稳定可靠），
  * 标签是发布时随手打的自由标记，只作为第二行的补充筛选项。
+ * 视图可在「卡片墙」与「列表」（CRM 式表格）之间切换。
  */
 export function BoardWall({ showHero = false }: BoardWallProps) {
 	const router = useRouter()
@@ -38,6 +42,7 @@ export function BoardWall({ showHero = false }: BoardWallProps) {
 	const [searchTerm, setSearchTerm] = useState('')
 	const [selectedType, setSelectedType] = useState<BoardType | 'all'>('all')
 	const [selectedTag, setSelectedTag] = useState<string>('all')
+	const [view, setView] = useState<'grid' | 'list'>('grid')
 
 	const allTags = useMemo(() => Array.from(new Set(items.flatMap(item => item.tags || []))), [items])
 
@@ -70,14 +75,31 @@ export function BoardWall({ showHero = false }: BoardWallProps) {
 			)}
 
 			{/* 搜索 + 筛选（未登录无需展示） */}
-			<div className={`mb-8 space-y-4 ${role ? '' : 'hidden'}`}>
-				<input
-					type='text'
-					placeholder='搜索看板标题、摘要、slug…'
-					value={searchTerm}
-					onChange={e => setSearchTerm(e.target.value)}
-					className='focus:ring-brand mx-auto block w-full max-w-md rounded-lg border px-4 py-2 text-sm focus:ring-2 focus:outline-none'
-				/>
+			<div className={`mb-6 space-y-3 ${role ? '' : 'hidden'}`}>
+				<div className='flex items-center gap-3'>
+					<input
+						type='text'
+						placeholder='搜索看板标题、摘要、slug…'
+						value={searchTerm}
+						onChange={e => setSearchTerm(e.target.value)}
+						className='focus:ring-brand min-w-0 flex-1 rounded-lg border px-3.5 py-2 text-sm focus:ring-2 focus:outline-none'
+					/>
+					{/* 视图切换 */}
+					<div className='bg-card flex shrink-0 items-center rounded-lg border p-0.5'>
+						<button
+							onClick={() => setView('grid')}
+							title='卡片视图'
+							className={`flex h-7 w-8 items-center justify-center rounded-md transition-colors ${view === 'grid' ? 'bg-brand/10 text-brand' : 'text-secondary hover:text-primary'}`}>
+							<LayoutGrid className='h-4 w-4' />
+						</button>
+						<button
+							onClick={() => setView('list')}
+							title='列表视图'
+							className={`flex h-7 w-8 items-center justify-center rounded-md transition-colors ${view === 'list' ? 'bg-brand/10 text-brand' : 'text-secondary hover:text-primary'}`}>
+							<List className='h-4 w-4' />
+						</button>
+					</div>
+				</div>
 
 				{/* 主筛：内容类型 */}
 				<div className='flex flex-wrap items-center justify-center gap-2'>
@@ -121,7 +143,7 @@ export function BoardWall({ showHero = false }: BoardWallProps) {
 				<div className='text-secondary py-20 text-center text-sm'>加载中…</div>
 			) : hydrated && !role ? (
 				/* 未登录：私有书架，先登录 */
-				<div className='bg-card mx-auto mt-10 max-w-md rounded-3xl border p-10 text-center shadow'>
+				<div className='bg-card mx-auto mt-10 max-w-md rounded-xl border p-10 text-center shadow'>
 					<div className='text-3xl'>🔒</div>
 					<p className='mt-3 text-sm'>这是一个私有看板书架，登录后才能浏览。</p>
 					<button onClick={() => router.push('/login')} className='brand-btn mx-auto mt-5'>
@@ -152,6 +174,59 @@ export function BoardWall({ showHero = false }: BoardWallProps) {
 						<p>没有匹配的看板</p>
 					)}
 				</div>
+			) : view === 'list' ? (
+				/* 列表视图：CRM 式表格，一屏扫完所有看板 */
+				<div className='bg-card overflow-hidden rounded-lg border'>
+					<table className='w-full text-left text-sm'>
+						<thead>
+							<tr className='text-secondary bg-secondary/5 text-xs'>
+								<th className='px-4 py-2.5 font-medium'>名称</th>
+								<th className='hidden px-4 py-2.5 font-medium sm:table-cell'>类型</th>
+								<th className='hidden px-4 py-2.5 font-medium md:table-cell'>分类</th>
+								<th className='hidden px-4 py-2.5 font-medium lg:table-cell'>标签</th>
+								<th className='px-4 py-2.5 text-right font-medium'>日期</th>
+								{isAdmin && <th className='px-4 py-2.5 text-right font-medium'>操作</th>}
+							</tr>
+						</thead>
+						<tbody>
+							{filtered.map(item => {
+								const t = normalizeBoardType(item.type)
+								return (
+									<tr key={item.slug} className='border-border border-t transition-colors hover:bg-secondary/5'>
+										<td className='max-w-[280px] px-4 py-2.5'>
+											<Link href={`/boards/${item.slug}`} className='block truncate font-medium transition-colors hover:text-brand'>
+												{item.title || item.slug}
+											</Link>
+											{item.summary && <div className='text-secondary mt-0.5 truncate text-xs opacity-80'>{item.summary}</div>}
+										</td>
+										<td className='hidden px-4 py-2.5 sm:table-cell'>
+											<span className='bg-secondary/10 rounded px-2 py-0.5 text-xs'>{BOARD_TYPE_LABELS[t]}</span>
+										</td>
+										<td className='text-secondary hidden px-4 py-2.5 md:table-cell'>{item.category || '—'}</td>
+										<td className='hidden px-4 py-2.5 lg:table-cell'>
+											<div className='flex flex-wrap gap-1'>
+												{(item.tags || []).slice(0, 3).map(tag => (
+													<span key={tag} className='bg-secondary/10 rounded px-1.5 py-0.5 text-[11px]'>
+														{tag}
+													</span>
+												))}
+											</div>
+										</td>
+										<td className='text-secondary whitespace-nowrap px-4 py-2.5 text-right text-xs'>{item.date ? dayjs(item.date).format('YYYY-MM-DD') : '—'}</td>
+										{isAdmin && (
+											<td className='px-4 py-2.5 text-right'>
+												<button onClick={() => router.push(`/write?slug=${item.slug}`)} className='text-secondary hover:text-brand text-xs transition-colors'>
+													编辑
+												</button>
+											</td>
+										)}
+									</tr>
+								)
+							})}
+						</tbody>
+					</table>
+					{filtered.length === 0 && <div className='text-secondary py-10 text-center text-xs'>没有匹配的看板</div>}
+				</div>
 			) : (
 				<div className={`grid ${colsClass} ${gridGap}`}>
 					{filtered.map((item, i) => (
@@ -162,11 +237,11 @@ export function BoardWall({ showHero = false }: BoardWallProps) {
 
 			{/* 新建入口 */}
 			{isAdmin && items.length > 0 && (
-				<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className='mt-12 flex items-center justify-center gap-2 text-center'>
-					<button onClick={() => router.push('/write')} className='brand-btn mx-auto'>
+				<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className='mt-10 flex items-center justify-center gap-2'>
+					<button onClick={() => router.push('/write')} className='brand-btn'>
 						新建看板
 					</button>
-					<button onClick={() => router.push('/repo')} className='bg-card mx-auto rounded-xl border px-6 py-2 text-sm'>
+					<button onClick={() => router.push('/repo')} className='bg-card rounded-lg border px-4 py-2 text-sm transition-colors hover:bg-bg'>
 						仓库浏览
 					</button>
 				</motion.div>

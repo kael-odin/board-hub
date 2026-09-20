@@ -1,8 +1,6 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { ColorPicker } from '@/components/color-picker'
-import { XIcon } from 'lucide-react'
 import type { SiteContent } from '../stores/config-store'
 import siteContent from '@/config/site-content.json'
 
@@ -16,58 +14,61 @@ const DEFAULT_THEME_COLORS = siteContent.theme
 type ColorPreset = {
 	name: string
 	theme: Partial<SiteContent['theme']>
-	backgroundColors: string[]
 }
 
+/** 企业向配色预设：改动立即预览，保存后全站生效（含暗色模式的品牌色） */
 const COLOR_PRESETS: ColorPreset[] = [
 	{
-		name: '春暖',
+		name: '商务蓝（默认）',
 		theme: {
-			colorBrand: '#35bfab',
-			colorBrandSecondary: '#1fc9e7',
-			colorPrimary: '#334f52',
-			colorSecondary: '#7b888e',
-			colorBg: '#eeeeee',
-			colorBorder: '#ffffff',
-			colorCard: '#ffffff66',
-			colorArticle: '#ffffffcc'
-		},
-		backgroundColors: ['#EDDD62', '#9EE7D1', '#84D68A', '#EDDD62', '#88E6E5', '#a7f3d0']
+			colorBrand: '#2563eb',
+			colorBrandSecondary: '#0ea5e9',
+			colorPrimary: '#111827',
+			colorSecondary: '#6b7280',
+			colorBg: '#f4f5f7',
+			colorBorder: '#e5e7eb',
+			colorCard: '#ffffff',
+			colorArticle: '#ffffff'
+		}
 	},
 	{
-		name: '秋实',
+		name: '深海',
 		theme: {
-			colorPrimary: '#4E3F42',
-			colorBrand: '#de4331',
-			colorBrandSecondary: '#FCC841'
-		},
-		backgroundColors: ['#FCC841', '#DFEFFC', '#DEDE92', '#DE4331', '#FE9750', '#FCC841']
+			colorBrand: '#0f766e',
+			colorBrandSecondary: '#0891b2',
+			colorPrimary: '#134e4a',
+			colorSecondary: '#64748b',
+			colorBg: '#f1f5f6',
+			colorBorder: '#d9e2e5',
+			colorCard: '#ffffff',
+			colorArticle: '#ffffff'
+		}
 	},
 	{
-		name: '晴空',
+		name: '石墨',
 		theme: {
-			colorBrand: '#2fcbe7',
-			colorPrimary: '#5B423F',
-			colorSecondary: '#8b7667',
-			colorBrandSecondary: '#eec25e',
-			colorBg: '#d4e8f3',
-			colorCard: '#ffffff99',
-		},
-		backgroundColors: ['#f7da3987', '#8fdbe9', '#fffef8']
+			colorBrand: '#374151',
+			colorBrandSecondary: '#f59e0b',
+			colorPrimary: '#111827',
+			colorSecondary: '#6b7280',
+			colorBg: '#f5f5f4',
+			colorBorder: '#e7e5e4',
+			colorCard: '#ffffff',
+			colorArticle: '#ffffff'
+		}
 	},
 	{
-		name: '深夜',
+		name: '绛紫',
 		theme: {
-			colorBrand: '#2a48f3',
-			colorPrimary: '#e6e8e8',
-			colorSecondary: '#acadae',
-			colorBrandSecondary: '#51d0b9',
-			colorBg: '#0a051f',
-			colorBorder: '#8a8a8a5e',
-			colorCard: '#ffffff0e',
-			colorArticle: '#6f6f6f33'
-		},
-		backgroundColors: ['#16007b']
+			colorBrand: '#7c3aed',
+			colorBrandSecondary: '#a855f7',
+			colorPrimary: '#1e1b2e',
+			colorSecondary: '#71717a',
+			colorBg: '#f6f5fa',
+			colorBorder: '#e6e4ef',
+			colorCard: '#ffffff',
+			colorArticle: '#ffffff'
+		}
 	}
 ]
 
@@ -84,63 +85,9 @@ export function ColorConfig({ formData, setFormData }: ColorConfigProps) {
 		}))
 	}
 
-	const handleBrandColorChange = (value: string) => {
-		setFormData(prev => ({
-			...prev,
-			theme: {
-				...prev.theme,
-				colorBrand: value
-			}
-		}))
-	}
-
-	const handleColorChange = (index: number, value: string) => {
-		const newColors = [...formData.backgroundColors]
-		newColors[index] = value
-		setFormData({ ...formData, backgroundColors: newColors })
-	}
-
-	const generateRandomColor = () => {
-		const randomChannel = () => Math.floor(Math.random() * 256)
-		return `#${[randomChannel(), randomChannel(), randomChannel()]
-			.map(channel => channel.toString(16).padStart(2, '0'))
-			.join('')
-			.toUpperCase()}`
-	}
-
-	const handleRandomizeColors = () => {
-		const count = Math.floor(Math.random() * 5) + 4 // 4 ~ 8 个颜色
-		const backgroundColors = Array.from({ length: count }, () => generateRandomColor())
-		const colorBrand = generateRandomColor()
-
-		setFormData(prev => ({
-			...prev,
-			backgroundColors,
-			theme: {
-				...prev.theme,
-				colorBrand
-			}
-		}))
-	}
-
-	const handleAddColor = () => {
-		setFormData({
-			...formData,
-			backgroundColors: [...formData.backgroundColors, '#EDDD62']
-		})
-	}
-
-	const handleRemoveColor = (index: number) => {
-		if (formData.backgroundColors.length > 1) {
-			const newColors = formData.backgroundColors.filter((_, i) => i !== index)
-			setFormData({ ...formData, backgroundColors: newColors })
-		}
-	}
-
 	const handlePresetChange = (preset: ColorPreset) => {
 		setFormData(prev => ({
 			...prev,
-			backgroundColors: [...preset.backgroundColors],
 			theme: {
 				...prev.theme,
 				...preset.theme
@@ -148,109 +95,45 @@ export function ColorConfig({ formData, setFormData }: ColorConfigProps) {
 		}))
 	}
 
+	const field = (label: string, key: keyof typeof DEFAULT_THEME_COLORS) => (
+		<div className='flex items-center gap-3'>
+			<ColorPicker value={theme[key] ?? DEFAULT_THEME_COLORS[key]} onChange={value => handleThemeColorChange(key, value)} />
+			<span className='text-xs'>{label}</span>
+		</div>
+	)
+
 	return (
 		<div className='space-y-6'>
 			<div>
 				<label className='mb-2 block text-sm font-medium'>基础颜色</label>
 				<div className='grid grid-cols-2 gap-4'>
-					<div className='flex items-center gap-3'>
-						<ColorPicker value={formData.theme?.colorBrand ?? '#35bfab'} onChange={handleBrandColorChange} />
-						<span className='text-xs'>主题色</span>
-					</div>
-					<div className='flex items-center gap-3'>
-						<ColorPicker
-							value={theme.colorBrandSecondary ?? DEFAULT_THEME_COLORS.colorBrandSecondary}
-							onChange={value => handleThemeColorChange('colorBrandSecondary', value)}
-						/>
-						<span className='text-xs'>次级主题色</span>
-					</div>
-					<div className='flex items-center gap-3'>
-						<ColorPicker value={theme.colorPrimary ?? DEFAULT_THEME_COLORS.colorPrimary} onChange={value => handleThemeColorChange('colorPrimary', value)} />
-						<span className='text-xs'>主色</span>
-					</div>
-					<div className='flex items-center gap-3'>
-						<ColorPicker
-							value={theme.colorSecondary ?? DEFAULT_THEME_COLORS.colorSecondary}
-							onChange={value => handleThemeColorChange('colorSecondary', value)}
-						/>
-						<span className='text-xs'>次色</span>
-					</div>
-					<div className='flex items-center gap-3'>
-						<ColorPicker value={theme.colorBg ?? DEFAULT_THEME_COLORS.colorBg} onChange={value => handleThemeColorChange('colorBg', value)} />
-						<span className='text-xs'>背景色</span>
-					</div>
-					<div className='flex items-center gap-3'>
-						<ColorPicker value={theme.colorBorder ?? DEFAULT_THEME_COLORS.colorBorder} onChange={value => handleThemeColorChange('colorBorder', value)} />
-						<span className='text-xs'>边框色</span>
-					</div>
-					<div className='flex items-center gap-3'>
-						<ColorPicker value={theme.colorCard ?? DEFAULT_THEME_COLORS.colorCard} onChange={value => handleThemeColorChange('colorCard', value)} />
-						<span className='text-xs'>卡片色</span>
-					</div>
-					<div className='flex items-center gap-3'>
-						<ColorPicker value={theme.colorArticle ?? DEFAULT_THEME_COLORS.colorArticle} onChange={value => handleThemeColorChange('colorArticle', value)} />
-						<span className='text-xs'>文章背景</span>
-					</div>
+					{field('主题色', 'colorBrand')}
+					{field('次级主题色', 'colorBrandSecondary')}
+					{field('主色', 'colorPrimary')}
+					{field('次色', 'colorSecondary')}
+					{field('背景色', 'colorBg')}
+					{field('边框色', 'colorBorder')}
+					{field('卡片色', 'colorCard')}
+					{field('文章背景', 'colorArticle')}
 				</div>
 			</div>
 
 			<div>
-				<div className='mb-2 flex items-center justify-between gap-3'>
-					<label className='block text-sm font-medium'>背景颜色</label>
-					<div className='flex gap-2'>
-						<motion.button
-							whileHover={{ scale: 1.05 }}
-							whileTap={{ scale: 0.95 }}
-							onClick={handleRandomizeColors}
-							className='rounded-lg border bg-white/60 dark:bg-white/10 px-3 py-1 text-xs whitespace-nowrap'>
-							随机配色
-						</motion.button>
-						<motion.button
-							whileHover={{ scale: 1.05 }}
-							whileTap={{ scale: 0.95 }}
-							onClick={handleAddColor}
-							className='rounded-lg border bg-white/60 dark:bg-white/10 px-3 py-1 text-xs whitespace-nowrap'>
-							+ 添加颜色
-						</motion.button>
-					</div>
-				</div>
-				<div className='flex gap-3'>
-					{formData.backgroundColors.map((color, index) => (
-						<div key={index} className='flex items-center gap-2'>
-							<div className='group relative'>
-								<ColorPicker value={color} onChange={value => handleColorChange(index, value)} />
-								{formData.backgroundColors.length > 1 && (
-									<button
-										onClick={() => handleRemoveColor(index)}
-										className='text-secondary absolute -top-1 -right-2 rounded-lg border bg-white/60 dark:bg-white/10 text-xs whitespace-nowrap opacity-0 transition-opacity group-hover:opacity-100'>
-										<XIcon className='size-3' />
-									</button>
-								)}
+				<label className='mb-2 block text-sm font-medium'>配色方案</label>
+				<div className='flex flex-col gap-3'>
+					{COLOR_PRESETS.map(preset => (
+						<button
+							key={preset.name}
+							onClick={() => handlePresetChange(preset)}
+							className='bg-card flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-secondary/5'>
+							<div className='flex items-center gap-2'>
+								<div className='h-8 w-8 rounded-md border shadow-sm' style={{ backgroundColor: preset.theme.colorBrand ?? DEFAULT_THEME_COLORS.colorBrand }} />
+								<div className='h-8 w-8 rounded-md border shadow-sm' style={{ backgroundColor: preset.theme.colorBg ?? DEFAULT_THEME_COLORS.colorBg }} />
 							</div>
-						</div>
+							<span className='text-sm font-medium whitespace-nowrap'>{preset.name}</span>
+						</button>
 					))}
 				</div>
-			</div>
-
-			<div className='flex flex-col gap-3'>
-				{COLOR_PRESETS.map(preset => (
-					<button
-						key={preset.name}
-						onClick={() => handlePresetChange(preset)}
-						className='flex items-center gap-3 rounded-lg border bg-white/60 dark:bg-white/10 p-3 transition-colors hover:bg-white/80 dark:hover:bg-white/15 dark:bg-white/10'>
-						<div className='flex items-center gap-2'>
-							<div
-								className='h-10 w-10 rounded-lg border-2 border-white/20 shadow-sm'
-								style={{ backgroundColor: preset.theme.colorBrand ?? DEFAULT_THEME_COLORS.colorBrand }}
-							/>
-							{preset.backgroundColors.map((color, index) => (
-								<div key={index} className='h-10 w-10 rounded-lg border-2 border-white/20 shadow-sm' style={{ backgroundColor: color }} />
-							))}
-						</div>
-
-						<span className='text-sm font-medium whitespace-nowrap'>{preset.name}</span>
-					</button>
-				))}
 			</div>
 		</div>
 	)

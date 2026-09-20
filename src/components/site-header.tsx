@@ -47,8 +47,8 @@ export function SiteHeader() {
 
 	return (
 		<>
-			<header className='bg-card/70 fixed inset-x-0 top-0 z-40 border-b backdrop-blur-md'>
-				<div className='mx-auto flex h-14 max-w-[1600px] items-center gap-4 px-4 sm:px-6'>
+			<header className='bg-card fixed inset-x-0 top-0 z-40 border-b'>
+				<div className='mx-auto flex h-12 max-w-[1600px] items-center gap-4 px-4 sm:px-6'>
 					{/* 站名 */}
 					<Link href='/' className='flex min-w-0 items-center gap-2.5'>
 						<Image
