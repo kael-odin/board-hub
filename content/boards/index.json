@@ -1,5 +1,15 @@
 [
   {
+    "slug": "q2-channel-review",
+    "title": "二季度渠道复盘",
+    "type": "markdown",
+    "tags": [],
+    "date": "2026-09-20T16:15",
+    "summary": "",
+    "hidden": true,
+    "category": ""
+  },
+  {
     "slug": "sheet-demo",
     "title": "示例表格 · 销售数据",
     "type": "sheet",
