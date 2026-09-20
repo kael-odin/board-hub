@@ -1,14 +1,12 @@
 import useSWR from 'swr'
-import { useAuthStore } from '@/hooks/use-auth'
-import { withBase } from '@/lib/asset-path'
 import type { BoardIndexItem } from '@/app/boards/types'
 
 export type { BoardIndexItem } from '@/app/boards/types'
 
-// 改进 fetcher，抛出状态码以便处理 404
-const fetcher = async (url: string) => {
+const fetcher = async (url: string): Promise<BoardIndexItem[]> => {
 	const res = await fetch(url, { cache: 'no-store' })
 	if (!res.ok) {
+		if (res.status === 401) return [] // 未登录：服务端本来就不会给内容
 		const error: any = new Error('Fetch failed')
 		error.status = res.status
 		throw error
@@ -17,21 +15,18 @@ const fetcher = async (url: string) => {
 	return Array.isArray(data) ? data : []
 }
 
-/** 读取看板列表。未登录时自动过滤掉标记为 hidden 的看板。 */
+/**
+ * 看板列表。hidden 过滤在服务端按角色完成：
+ * admin 看到全部，viewer 只看到非隐藏的，未登录拿到空列表。
+ */
 export function useBoardIndex() {
-	const { isAuth } = useAuthStore()
-	const { data, error, isLoading } = useSWR<BoardIndexItem[]>(withBase('/boards/index.json'), fetcher, {
+	const { data, error, isLoading } = useSWR<BoardIndexItem[]>('/api/boards', fetcher, {
 		revalidateOnFocus: false,
 		revalidateOnReconnect: true
 	})
 
-	let result = data || []
-	if (!isAuth) {
-		result = result.filter(item => !item.hidden)
-	}
-
 	return {
-		items: result,
+		items: data || [],
 		loading: isLoading,
 		error
 	}

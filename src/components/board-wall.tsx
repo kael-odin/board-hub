@@ -20,7 +20,8 @@ type BoardWallProps = {
 export function BoardWall({ showHero = false }: BoardWallProps) {
 	const router = useRouter()
 	const { items, loading, error } = useBoardIndex()
-	const { isAuth } = useAuthStore()
+	const { role, hydrated } = useAuthStore()
+	const isAdmin = role === 'admin'
 
 	const [searchTerm, setSearchTerm] = useState('')
 	const [selectedTag, setSelectedTag] = useState<string>('all')
@@ -46,8 +47,8 @@ export function BoardWall({ showHero = false }: BoardWallProps) {
 				</motion.div>
 			)}
 
-			{/* 搜索 + 标签筛选 */}
-			<div className='mb-8 space-y-4'>
+			{/* 搜索 + 标签筛选（未登录无需展示） */}
+			<div className={`mb-8 space-y-4 ${role ? '' : 'hidden'}`}>
 				<input
 					type='text'
 					placeholder='搜索看板…'
@@ -76,19 +77,35 @@ export function BoardWall({ showHero = false }: BoardWallProps) {
 			</div>
 
 			{/* 卡片墙 */}
-			{loading ? (
+			{!hydrated && !loading ? (
+				<div className='text-secondary py-20 text-center text-sm'>加载中…</div>
+			) : hydrated && !role ? (
+				/* 未登录：私有书架，先登录 */
+				<div className='bg-card mx-auto mt-10 max-w-md rounded-3xl border p-10 text-center shadow'>
+					<div className='text-3xl'>🔒</div>
+					<p className='mt-3 text-sm'>这是一个私有看板书架，登录后才能浏览。</p>
+					<button onClick={() => router.push('/login')} className='brand-btn mx-auto mt-5'>
+						去登录
+					</button>
+				</div>
+			) : loading ? (
 				<div className='text-secondary py-20 text-center text-sm'>加载中…</div>
 			) : error ? (
-				<div className='py-20 text-center text-sm text-red-500'>加载失败，请检查 public/boards/index.json 是否存在</div>
+				<div className='py-20 text-center text-sm text-red-500'>加载失败，请刷新重试；若持续失败请联系管理员检查服务端配置</div>
 			) : filtered.length === 0 ? (
 				<div className='text-secondary py-20 text-center text-sm'>
 					{items.length === 0 ? (
 						<>
 							<p>还没有任何看板</p>
-							{isAuth && (
-								<button onClick={() => router.push('/write')} className='brand-btn mx-auto mt-4'>
-									新建第一个看板
-								</button>
+							{isAdmin && (
+								<div className='mt-4 flex items-center justify-center gap-2'>
+									<button onClick={() => router.push('/write')} className='brand-btn'>
+										新建第一个看板
+									</button>
+									<button onClick={() => router.push('/repo')} className='bg-card rounded-xl border px-6 py-2 text-sm'>
+										仓库浏览
+									</button>
+								</div>
 							)}
 						</>
 					) : (
@@ -98,16 +115,19 @@ export function BoardWall({ showHero = false }: BoardWallProps) {
 			) : (
 				<div className='grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3'>
 					{filtered.map((item, i) => (
-						<BoardCard key={item.slug} item={item} index={i} onEdit={isAuth ? () => router.push(`/write?slug=${item.slug}`) : undefined} />
+						<BoardCard key={item.slug} item={item} index={i} onEdit={isAdmin ? () => router.push(`/write?slug=${item.slug}`) : undefined} />
 					))}
 				</div>
 			)}
 
 			{/* 新建入口 */}
-			{isAuth && items.length > 0 && (
-				<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className='mt-12 text-center'>
+			{isAdmin && items.length > 0 && (
+				<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className='mt-12 flex items-center justify-center gap-2 text-center'>
 					<button onClick={() => router.push('/write')} className='brand-btn mx-auto'>
 						新建看板
+					</button>
+					<button onClick={() => router.push('/repo')} className='bg-card mx-auto rounded-xl border px-6 py-2 text-sm'>
+						仓库浏览
 					</button>
 				</motion.div>
 			)}

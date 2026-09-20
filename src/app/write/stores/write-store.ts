@@ -5,12 +5,13 @@ import { compressImageToWebp, isCompressibleImage } from '@/lib/image-compress'
 import { loadBoard } from '@/lib/load-board'
 import { draftKey, draftToStoreAssets, loadDraft, type DraftPayload } from '../services/draft-store'
 import type { PublishForm, ImageItem } from '../types'
+import type { BoardSource } from '@/app/boards/types'
 
 /** 单张图片转 dataUrl 的上限（超过则不随本地草稿持久化） */
 const DATAURL_BUDGET = 400 * 1024
 
-/** 单个视频文件上限：GitHub blob 硬限 100MB，留出 base64 余量 */
-const MAX_VIDEO_BYTES = 80 * 1024 * 1024
+/** 单个视频文件上限：服务端提交接口单次 4MB（Vercel 函数请求体限制） */
+const MAX_VIDEO_BYTES = 4 * 1024 * 1024
 
 function readAsDataUrl(file: File): Promise<string | null> {
 	return new Promise(resolve => {
@@ -52,6 +53,14 @@ type WriteStore = {
 	// Cover state
 	cover: ImageItem | null
 	setCover: (cover: ImageItem | null) => void
+
+	// 原始数据附件（如 Excel 源文件）
+	/** 待上传的新附件；null 表示没有新文件要传 */
+	sourceFile: File | null
+	/** 远端已有的附件元信息（编辑模式回填）；两个都为空表示发布时删除附件 */
+	sourceMeta: BoardSource | null
+	setSourceFile: (file: File | null) => void
+	removeSource: () => void
 
 	// Publish state
 	loading: boolean
@@ -118,7 +127,7 @@ export const useWriteStore = create<WriteStore>((set, get) => ({
 			return f.type.startsWith('image/')
 		})
 		if (rejected.length > 0) {
-			toast.error(`以下视频超过 80MB 上限，请压缩后上传：${rejected.join('、')}`)
+			toast.error(`以下视频超过 4MB 上限，请压缩后上传：${rejected.join('、')}`)
 		}
 		if (arr.length === 0) return []
 
@@ -212,6 +221,12 @@ export const useWriteStore = create<WriteStore>((set, get) => ({
 	cover: null,
 	setCover: cover => set({ cover }),
 
+	// 原始数据附件
+	sourceFile: null,
+	sourceMeta: null,
+	setSourceFile: file => set({ sourceFile: file }),
+	removeSource: () => set({ sourceFile: null, sourceMeta: null }),
+
 	// Publish state
 	loading: false,
 	setLoading: loading => set({ loading }),
@@ -265,6 +280,8 @@ export const useWriteStore = create<WriteStore>((set, get) => ({
 				},
 				images,
 				cover,
+				sourceFile: null,
+				sourceMeta: board.source || null,
 				loading: false
 			})
 
@@ -292,7 +309,11 @@ export const useWriteStore = create<WriteStore>((set, get) => ({
 		set({
 			form: { ...draft.form },
 			images,
-			cover
+			cover,
+			// File 本体不进草稿，但「远端已有附件」的元信息要保住，
+			// 否则恢复草稿后发布会把仓库里的 source.* 当孤儿文件删掉
+			sourceFile: null,
+			sourceMeta: draft.sourceMeta || null
 		})
 		return { filesDropped }
 	},
@@ -315,7 +336,9 @@ export const useWriteStore = create<WriteStore>((set, get) => ({
 			originalSlug: null,
 			form: { ...initialForm, date: formatDateTimeLocal() },
 			images: [],
-			cover: null
+			cover: null,
+			sourceFile: null,
+			sourceMeta: null
 		})
 	}
 }))

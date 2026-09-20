@@ -51,10 +51,10 @@ function BoardThumb({ item }: { item: BoardIndexItem }) {
 	useEffect(() => {
 		if (type !== 'html' || !hovered || html || staticImage) return
 		let cancelled = false
-		fetch(withBase(`/boards/${encodeURIComponent(item.slug)}/index.html`))
-			.then(r => (r.ok ? r.text() : null))
-			.then(t => {
-				if (!cancelled && t) setHtml(t)
+		fetch(`/api/boards/${encodeURIComponent(item.slug)}`, { cache: 'no-store' })
+			.then(r => (r.ok ? r.json() : null))
+			.then((data: { text?: string } | null) => {
+				if (!cancelled && data?.text) setHtml(data.text)
 			})
 			.catch(() => {})
 		return () => {

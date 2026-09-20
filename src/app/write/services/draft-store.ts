@@ -1,4 +1,5 @@
 import type { ImageItem, PublishForm } from '../types'
+import type { BoardSource } from '@/app/boards/types'
 
 /**
  * 编辑器本地草稿层（localStorage）。
@@ -23,6 +24,8 @@ export type DraftPayload = {
 	images: DraftImage[]
 	/** true 表示有图片因超出预算未能随草稿保存 */
 	filesDropped?: boolean
+	/** 远端已有的原始数据附件元信息（编辑模式），恢复草稿时回填 store */
+	sourceMeta?: BoardSource | null
 	savedAt: number
 }
 
@@ -49,7 +52,7 @@ export function draftKey(mode: 'create' | 'edit', originalSlug: string | null): 
 }
 
 /** 由 store 当前状态构建可序列化草稿；超出预算时从最大的图片 dataUrl 开始丢弃 */
-export function buildDraftPayload(form: PublishForm, cover: ImageItem | null, images: ImageItem[]): DraftPayload {
+export function buildDraftPayload(form: PublishForm, cover: ImageItem | null, images: ImageItem[], sourceMeta?: BoardSource | null): DraftPayload {
 	let filesDropped = false
 	const draftImages: Array<{ id: string; url?: string; dataUrl?: string; filename?: string }> = []
 	for (const it of images) {
@@ -62,7 +65,7 @@ export function buildDraftPayload(form: PublishForm, cover: ImageItem | null, im
 		}
 	}
 
-	const payload: DraftPayload = { form: { ...form }, images: draftImages as DraftImage[], filesDropped, savedAt: Date.now() }
+	const payload: DraftPayload = { form: { ...form }, images: draftImages as DraftImage[], filesDropped, sourceMeta: sourceMeta || null, savedAt: Date.now() }
 	if (cover?.type === 'url') payload.coverUrl = cover.url
 	if (cover?.type === 'file' && cover.dataUrl) {
 		payload.coverDataUrl = cover.dataUrl

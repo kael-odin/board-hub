@@ -25,6 +25,8 @@ type SheetEditorProps = {
 	readOnly?: boolean
 	/** 编辑后回调（已防抖），把最新快照交给外面的表单，进而来得及被草稿和发布捕获 */
 	onChange?: (snapshot: IWorkbookData) => void
+	/** 导入 Excel 时回调原始文件（用于把 .xlsx 原件随看板存进仓库） */
+	onFileImported?: (file: File) => void
 	apiRef?: Ref<SheetEditorApi>
 }
 
@@ -34,11 +36,13 @@ type SheetEditorProps = {
  * ⚠️ 保真度：只处理「值 + 公式 + 多 sheet」。样式、条件格式、图表、透视表
  * 不在转换范围内（官方完整转换需 Univer Pro 服务端模块，见 README）。
  */
-export function SheetEditor({ initialSnapshot, readOnly = false, onChange, apiRef }: SheetEditorProps) {
+export function SheetEditor({ initialSnapshot, readOnly = false, onChange, onFileImported, apiRef }: SheetEditorProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	// 用 ref 保存最新的 onChange，避免因为它的引用变化而重建整个 Univer 实例
 	const onChangeRef = useRef(onChange)
 	onChangeRef.current = onChange
+	const onFileImportedRef = useRef(onFileImported)
+	onFileImportedRef.current = onFileImported
 	const workbookRef = useRef<any>(null)
 	const univerRef = useRef<any>(null)
 	const univerAPIRef = useRef<any>(null)
@@ -144,6 +148,7 @@ export function SheetEditor({ initialSnapshot, readOnly = false, onChange, apiRe
 	const importXlsx = async (file: File) => {
 		setBusy(true)
 		try {
+			onFileImportedRef.current?.(file)
 			const buf = await file.arrayBuffer()
 			const { snapshot } = xlsxToSnapshot(buf, file.name.replace(/\.(xlsx|xls|csv)$/i, ''))
 			const api = univerAPIRef.current

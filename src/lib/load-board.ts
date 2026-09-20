@@ -1,5 +1,4 @@
-import { normalizeBoardType, type BoardConfig, type BoardType } from '@/app/boards/types'
-import { withBase } from '@/lib/asset-path'
+import { normalizeBoardType, type BoardConfig, type BoardSource, type BoardType } from '@/app/boards/types'
 
 export type { BoardConfig } from '@/app/boards/types'
 
@@ -14,58 +13,41 @@ export type LoadedBoard = {
 	/** image 类型的图片列表 */
 	images: string[]
 	cover?: string
+	/** 原始数据附件（.xlsx 等），未附加时为 null */
+	source: BoardSource | null
 }
 
 /**
- * 从 public/boards/{slug} 加载看板数据。
- * 先读 config.json 拿到 type，再按类型取对应的正文文件。
+ * 从 /api/boards/<slug> 加载看板数据（服务端鉴权出库，hidden 只对 admin 可见）。
+ * 404 = 不存在或无权查看。
  */
 export async function loadBoard(slug: string): Promise<LoadedBoard> {
 	if (!slug) {
 		throw new Error('Slug is required')
 	}
 
-	const base = withBase(`/boards/${encodeURIComponent(slug)}`)
-
-	// config.json 缺失时降级为空对象（此时按 html 处理）
-	let config: BoardConfig = {}
-	const configRes = await fetch(`${base}/config.json`)
-	if (configRes.ok) {
-		try {
-			config = (await configRes.json()) as BoardConfig
-		} catch {
-			config = {}
-		}
+	const res = await fetch(`/api/boards/${encodeURIComponent(slug)}`, { cache: 'no-store' })
+	if (!res.ok) {
+		throw new Error(res.status === 404 ? 'Board not found' : `加载失败（${res.status}）`)
 	}
-
-	const type = normalizeBoardType(config.type)
-
-	let text = ''
-	let snapshot: unknown | null = null
-	const images: string[] = Array.isArray(config.images) ? [...config.images] : []
-
-	if (type === 'html' || type === 'markdown') {
-		const file = type === 'html' ? 'index.html' : 'index.md'
-		const res = await fetch(`${base}/${file}`)
-		if (!res.ok) {
-			throw new Error('Board not found')
-		}
-		text = await res.text()
-	} else if (type === 'sheet') {
-		const res = await fetch(`${base}/sheet.json`)
-		if (!res.ok) {
-			throw new Error('Board not found')
-		}
-		snapshot = await res.json()
+	const data = (await res.json()) as {
+		type: BoardType
+		config: BoardConfig
+		text: string
+		snapshot: unknown | null
+		images?: string[]
+		cover?: string
+		source?: BoardSource | null
 	}
 
 	return {
 		slug,
-		type,
-		config,
-		text,
-		snapshot,
-		images,
-		cover: config.cover
+		type: normalizeBoardType(data.type),
+		config: data.config || {},
+		text: data.text || '',
+		snapshot: data.snapshot ?? null,
+		images: Array.isArray(data.images) ? data.images : [],
+		cover: data.cover,
+		source: data.source || null
 	}
 }

@@ -1,7 +1,6 @@
 'use client'
 
 import useSWR from 'swr'
-import { withBase } from '@/lib/asset-path'
 import { deriveCategories } from '@/lib/board-index'
 import type { BoardIndexItem } from '@/app/boards/types'
 
@@ -14,11 +13,11 @@ const fetcher = async (url: string): Promise<BoardIndexItem[]> => {
 
 /**
  * 看板分类列表。
- * 不再单独维护 categories.json —— 直接从 public/boards/index.json 的各条 category 字段推导，
+ * 不再单独维护 categories.json —— 直接从看板索引的 category 字段推导，
  * 少一个需要同步的文件。
  */
 export function useCategories() {
-	const { data, error, isLoading } = useSWR<BoardIndexItem[]>(withBase('/boards/index.json'), fetcher, {
+	const { data, error, isLoading } = useSWR<BoardIndexItem[]>('/api/boards', fetcher, {
 		revalidateOnFocus: false,
 		revalidateOnReconnect: true
 	})

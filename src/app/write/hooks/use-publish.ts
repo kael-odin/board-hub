@@ -1,23 +1,12 @@
 import { useCallback } from 'react'
-import { readFileAsText } from '@/lib/file-utils'
 import { toast } from 'sonner'
 import { pushBoard } from '../services/push-board'
 import { deleteBoard } from '../services/delete-board'
 import { useWriteStore } from '../stores/write-store'
-import { useAuthStore } from '@/hooks/use-auth'
 import { clearDraft, draftKey } from '../services/draft-store'
 
 export function usePublish() {
-	const { loading, setLoading, form, cover, images, mode, originalSlug } = useWriteStore()
-	const { isAuth, setPrivateKey } = useAuthStore()
-
-	const onChoosePrivateKey = useCallback(
-		async (file: File) => {
-			const pem = await readFileAsText(file)
-			setPrivateKey(pem)
-		},
-		[setPrivateKey]
-	)
+	const { loading, setLoading, form, cover, images, sourceFile, sourceMeta, mode, originalSlug } = useWriteStore()
 
 	const onPublish = useCallback(async () => {
 		try {
@@ -26,6 +15,8 @@ export function usePublish() {
 				form,
 				cover,
 				images,
+				sourceFile,
+				keepSource: sourceMeta,
 				mode,
 				originalSlug
 			})
@@ -40,7 +31,7 @@ export function usePublish() {
 		} finally {
 			setLoading(false)
 		}
-	}, [form, cover, images, mode, originalSlug, setLoading])
+	}, [form, cover, images, sourceFile, sourceMeta, mode, originalSlug, setLoading])
 
 	const onDelete = useCallback(async () => {
 		const targetSlug = originalSlug || form.slug
@@ -61,9 +52,7 @@ export function usePublish() {
 	}, [form.slug, originalSlug, setLoading])
 
 	return {
-		isAuth,
 		loading,
-		onChoosePrivateKey,
 		onPublish,
 		onDelete
 	}

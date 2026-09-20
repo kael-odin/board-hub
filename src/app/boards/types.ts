@@ -25,6 +25,15 @@ export const BOARD_ENTRY_FILES: Record<BoardType, string> = {
 	sheet: 'sheet.json'
 }
 
+/** 原始数据附件 —— 存在 public/boards/<slug>/source.<ext>，config.json 里记元信息 */
+export type BoardSource = {
+	/** 仓库内文件名，如 source.xlsx */
+	file: string
+	/** 上传时的原始文件名，仅用于展示 */
+	name?: string
+	size?: number
+}
+
 /** 看板列表索引项 —— 存在 public/boards/index.json */
 export type BoardIndexItem = {
 	slug: string
@@ -53,6 +62,8 @@ export type BoardConfig = {
 	category?: string
 	/** image 类型：图片列表（相对路径或外链） */
 	images?: string[]
+	/** 原始数据附件（如导入表格时的 .xlsx） */
+	source?: BoardSource
 }
 
 /** 归一化类型：老数据没有 type 字段时按 html 处理 */

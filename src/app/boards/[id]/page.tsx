@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import BoardView from './board-view'
+import { getRole } from '@/lib/server/session'
 
 const SITE_ORIGIN = process.env.NEXT_PUBLIC_SITE_URL || 'https://board-hub.vercel.app'
 
@@ -18,17 +19,23 @@ async function readBoardConfig(slug: string): Promise<BoardMetaConfig | null> {
 	// slug 同时是目录名，只放行安全字符
 	if (!/^[a-zA-Z0-9_-]{1,120}$/.test(slug)) return null
 	try {
-		const raw = await fs.readFile(path.join(process.cwd(), 'public', 'boards', slug, 'config.json'), 'utf-8')
+		const raw = await fs.readFile(path.join(process.cwd(), 'content', 'boards', slug, 'config.json'), 'utf-8')
 		return JSON.parse(raw) as BoardMetaConfig
 	} catch {
 		return null
 	}
 }
 
+/**
+ * 按请求生成元信息。私有站点：hidden 看板对非管理员一律当作不存在，
+ * 连 <title> 也不泄露。
+ */
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
 	const { id } = await params
-	const config = await readBoardConfig(id)
-	if (!config) return { title: '看板不存在' }
+	const [config, role] = await Promise.all([readBoardConfig(id), getRole()])
+	if (!config || (config.hidden && role !== 'admin')) {
+		return { title: '看板不存在', robots: { index: false, follow: false } }
+	}
 
 	const title = config.title || id
 	const description = config.summary || `${title} - ${SITE_ORIGIN.replace(/^https?:\/\//, '')}`
@@ -40,6 +47,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 		title,
 		description,
 		keywords: config.tags,
+		robots: { index: false, follow: false },
 		openGraph: {
 			title,
 			description,
@@ -47,37 +55,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 			publishedTime,
 			tags: config.tags,
 			images: [{ url: ogImage }]
-		},
-		twitter: {
-			card: 'summary_large_image',
-			title,
-			description,
-			images: [ogImage]
-		},
-		// 已下线（hidden）的看板不让搜索引擎收录
-		robots: config.hidden ? { index: false, follow: false } : undefined
+		}
 	}
 }
 
 /**
- * 静态导出需要在构建时枚举所有看板 slug。
- * slug 列表来自 public/boards/index.json —— 发布看板会 push 到仓库并触发重新构建，
- * 所以新看板在下次部署后就会有对应的静态页。
+ * 看板页按需渲染（内容经 /api/boards/* 鉴权出库后由客户端拉取）。
+ * 发布新看板提交到仓库触发重新部署后即可访问。
  */
-export async function generateStaticParams() {
-	try {
-		const raw = await fs.readFile(path.join(process.cwd(), 'public', 'boards', 'index.json'), 'utf-8')
-		const list = JSON.parse(raw) as Array<{ slug?: string }>
-		return list.filter(item => typeof item?.slug === 'string' && /^[a-zA-Z0-9_-]{1,120}$/.test(item.slug!)).map(item => ({ id: item.slug! }))
-	} catch {
-		// 索引缺失时导出空列表，首页仍可正常构建
-		return []
-	}
-}
-
-/** 未在构建时枚举到的 slug 直接 404，静态导出下没有按需渲染 */
-export const dynamicParams = false
-
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params
 	return <BoardView slug={id} />

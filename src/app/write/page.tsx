@@ -8,20 +8,30 @@ import { WriteActions } from './components/actions'
 import { WritePreview } from './components/preview'
 import { WriteLivePreview } from './components/live-preview'
 import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { clearDraft, draftKey, loadDraft } from './services/draft-store'
+import { useAuthStore } from '@/hooks/use-auth'
 
 /**
- * 编辑页。新建与编辑共用同一个路由：
+ * 编辑页（仅管理员）。新建与编辑共用同一个路由：
  *   /write            新建
  *   /write?slug=xxx   编辑已有看板
  *
- * 用查询参数而不是 /write/[slug] 动态段，是因为站点是静态导出
- * （output: 'export'），动态路由必须在构建时穷举所有 slug —— 而看板
- * 是发布后才产生的，做不到。查询参数下整站只需要一个 /write 静态页。
+ * 用查询参数而不是 /write/[slug] 动态段，是因为内容由服务端按需返回，
+ * 客户端路由在查询参数下整站只需要一个 /write 页面。
  */
 export default function WritePage() {
 	const { reset } = useWriteStore()
+	const router = useRouter()
+	const { role, hydrated } = useAuthStore()
+
+	// 查看者 / 未登录不允许进入编辑页
+	useEffect(() => {
+		if (hydrated && role !== 'admin') {
+			router.replace('/login?next=/write')
+		}
+	}, [hydrated, role, router])
 
 	useEffect(() => {
 		const slug = new URLSearchParams(window.location.search).get('slug')
@@ -59,6 +69,11 @@ export default function WritePage() {
 	}, [])
 
 	const { isPreview, closePreview } = usePreviewStore()
+
+	// 会话未确认或非管理员时不渲染编辑器，等待重定向
+	if (!hydrated || role !== 'admin') {
+		return <div className='text-secondary grid h-[60vh] place-items-center text-sm'>验证权限中…</div>
+	}
 
 	return isPreview ? (
 		<WritePreview onClose={closePreview} />

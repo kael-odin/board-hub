@@ -10,6 +10,7 @@ import { EditorView } from '@codemirror/view'
 import { BOARD_TYPES, BOARD_TYPE_LABELS, type BoardType } from '@/app/boards/types'
 import type { IWorkbookData } from '@univerjs/core'
 import { INIT_DELAY } from '@/consts'
+import { suggestSlug } from '@/lib/slug'
 import { useWriteStore } from '../stores/write-store'
 import { usePreviewStore } from '../stores/preview-store'
 import { buildDraftPayload, draftKey, formatDraftTime, saveDraft } from '../services/draft-store'
@@ -65,34 +66,6 @@ const EMPTY_HINT: Record<BoardType, string> = {
 	image: '图片看板的内容就是右侧「图片管理」里的图片，按顺序展示'
 }
 
-/** 由标题生成 slug：拉丁字符直接用，中文转拼音（按需加载 pinyin-pro） */
-async function suggestSlug(title: string): Promise<string> {
-	const base = title
-		.toLowerCase()
-		.replace(/[^a-z0-9一-龥\s-]/g, '')
-		.trim()
-	if (!base) return ''
-	try {
-		const mod: any = await import('pinyin-pro')
-		const pinyin = mod?.pinyin ?? mod?.default?.pinyin
-		if (pinyin) {
-			const py: string[] = pinyin(base, { toneType: 'none', type: 'array', nonZh: 'consecutive' } as const)
-			return (
-				py
-					.join('-')
-					.toLowerCase()
-					.replace(/[^a-z0-9-]/g, '')
-					.replace(/-+/g, '-')
-					.replace(/^-|-$/g, '')
-					.slice(0, 60) || ''
-			)
-		}
-	} catch {
-		// 库加载失败退回拉丁字符
-	}
-	return base.replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 60)
-}
-
 /** 跟随站点的 data-theme 属性，让编辑器和页面明暗一致 */
 function useIsDark() {
 	const [isDark, setIsDark] = useState(false)
@@ -127,15 +100,15 @@ export function WriteEditor() {
 		return form.type === 'markdown' ? [markdownLang(), editorTheme] : [htmlLang(), editorTheme]
 	}, [form.type])
 
-	// 自动保存到本地草稿：表单/封面/图片任一变化后 800ms 落盘
+	// 自动保存到本地草稿：表单/封面/图片/附件任一变化后 800ms 落盘
 	useEffect(() => {
 		let timer: ReturnType<typeof setTimeout> | null = null
 		const unsub = useWriteStore.subscribe((state, prev) => {
-			if (state.form === prev.form && state.cover === prev.cover && state.images === prev.images) return
+			if (state.form === prev.form && state.cover === prev.cover && state.images === prev.images && state.sourceMeta === prev.sourceMeta) return
 			if (timer) clearTimeout(timer)
 			timer = setTimeout(() => {
-				const { form, cover, images, mode, originalSlug } = useWriteStore.getState()
-				saveDraft(draftKey(mode, originalSlug), buildDraftPayload(form, cover, images))
+				const { form, cover, images, mode, originalSlug, sourceMeta } = useWriteStore.getState()
+				saveDraft(draftKey(mode, originalSlug), buildDraftPayload(form, cover, images, sourceMeta))
 				setSavedAt(Date.now())
 			}, 800)
 		})
@@ -143,8 +116,8 @@ export function WriteEditor() {
 		// 关闭/切换页签前立即补存，避免最后几秒输入丢失
 		const flush = () => {
 			if (timer) clearTimeout(timer)
-			const { form, cover, images, mode, originalSlug } = useWriteStore.getState()
-			saveDraft(draftKey(mode, originalSlug), buildDraftPayload(form, cover, images))
+			const { form, cover, images, mode, originalSlug, sourceMeta } = useWriteStore.getState()
+			saveDraft(draftKey(mode, originalSlug), buildDraftPayload(form, cover, images, sourceMeta))
 		}
 		window.addEventListener('pagehide', flush)
 		return () => {
@@ -274,14 +247,15 @@ export function WriteEditor() {
 							bracketMatching: true
 						}}
 					/>
-				) : form.type === 'sheet' ? (
-					<div className='h-[55vh] lg:h-[600px]'>
-						<SheetEditor
-							initialSnapshot={form.snapshot}
-							onChange={(snapshot: IWorkbookData) => updateForm({ snapshot })}
-						/>
-					</div>
-				) : (
+					) : form.type === 'sheet' ? (
+						<div className='h-[55vh] lg:h-[600px]'>
+							<SheetEditor
+								initialSnapshot={form.snapshot}
+								onChange={(snapshot: IWorkbookData) => updateForm({ snapshot })}
+								onFileImported={file => useWriteStore.getState().setSourceFile(file)}
+							/>
+						</div>
+					) : (
 					<div className='text-secondary grid h-[55vh] place-items-center px-8 text-center text-sm lg:h-[600px]'>
 						<div>
 							<p>{EMPTY_HINT.image}</p>
